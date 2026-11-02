@@ -30,8 +30,8 @@
       "data": {
         "rows": 5002,
         "ids": 5002,
-        "position_delete_files": 109,
-        "equality_delete_files": 108
+        "position_delete_files": 32,
+        "equality_delete_files": 31
       }
     },
     "identifiers": {
@@ -45,8 +45,7 @@
       "data": {
         "view": 34560,
         "table": 34560
-      },
-      "note": "StarRocks runs the view's starrocks SQL representation."
+      }
     },
     "decimal": {
       "status": "ok"

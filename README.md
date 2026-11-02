@@ -33,14 +33,14 @@ to reading tables that are updated with delete files. What each column means is 
 | Daft | 0.7.26 | 2026-11-02 | ✅ | ✅ | ❌[^17] | ➖[^18] | ✅ | ➖[^19] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^20] |
 | DuckDB | 2.0.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^21] | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^22] |
 | Polars | 2.1.0 | 2026-11-02 | ✅ | ✅ | ✅ | ➖[^23] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^24] |
-| StarRocks | 4.1.7 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^25] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅[^26] |
-| Trino | 484 | 2026-11-02 | ⚠️[^27] | ⚠️[^28] | ⚠️[^28] | ✅ | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ❌[^29] |
+| StarRocks | 4.1.7 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^25] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Trino | 484 | 2026-11-02 | ⚠️[^26] | ⚠️[^27] | ⚠️[^27] | ✅ | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ❌[^28] |
 
 ### Products
 
 | Client | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Dremio Enterprise | 26.1.12 | 2026-11-02 | ✅[^30] | ✅[^30] | ✅ | ✅ | ✅ | ➖[^31] | ✅[^32] | ✅[^33] | ✅ | ✅ | ✅ | ✅ |
+| Dremio Enterprise | 26.1.12 | 2026-11-02 | ✅[^29] | ✅[^29] | ✅ | ✅ | ✅ | ➖[^30] | ✅[^31] | ✅[^32] | ✅ | ✅ | ✅ | ✅ |
 
 ### What the columns mean
 
@@ -84,14 +84,13 @@ to reading tables that are updated with delete files. What each column means is 
 [^23]: Polars 2.1.0, Latest tables: The polars-iceberg planner rejects equality delete files and PyIceberg's reader, the fallback, raises 'PyIceberg does not yet support equality deletes' (apache/iceberg-python#1210).
 [^24]: Polars 2.1.0, Views: Polars reads Iceberg tables only: scan_iceberg and SQLContext.register_catalog load a name with load_table, which raises NoSuchTableError for the view (docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html).
 [^25]: StarRocks 4.1.7, Incremental read: StarRocks SQL reads an Iceberg table at one snapshot only (VERSION AS OF, TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel).
-[^26]: StarRocks 4.1.7, Views: StarRocks runs the view's starrocks SQL representation.
-[^27]: Trino 484, Login: needs the `s3-region` workaround: Without it the catalog does not load and the server does not start: SdkClientException: Unable to load region from any of the providers in the chain DefaultAwsRegionProviderChain.
-[^28]: Trino 484, S3, CDC tables, Schema evolution, Incremental read, Decimal, Timestamps, Nesting, Large values, Identifiers: needs the `case-insensitive-names` workaround: Without it: TABLE_NOT_FOUND: line 1:15: Table 'lake.cdc_measurement.c8y_temperature' does not exist
-[^29]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set
-[^30]: Dremio Enterprise 26.1.12, Login, S3: A Dremio data source was provisioned with the OAuth client credential and credential vending.
-[^31]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
-[^32]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
-[^33]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
+[^26]: Trino 484, Login: needs the `s3-region` workaround: Without it the catalog does not load and the server does not start: SdkClientException: Unable to load region from any of the providers in the chain DefaultAwsRegionProviderChain.
+[^27]: Trino 484, S3, CDC tables, Schema evolution, Incremental read, Decimal, Timestamps, Nesting, Large values, Identifiers: needs the `case-insensitive-names` workaround: Without it: TABLE_NOT_FOUND: line 1:15: Table 'lake.cdc_measurement.c8y_temperature' does not exist
+[^28]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set
+[^29]: Dremio Enterprise 26.1.12, Login, S3: A Dremio data source was provisioned with the OAuth client credential and credential vending.
+[^30]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
+[^31]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
+[^32]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
 <!-- END GENERATED TABLE -->
 
 ✅ works · ⚠️ works with a workaround, see the footnote · ❌ fails · ➖ not supported by the client ·
