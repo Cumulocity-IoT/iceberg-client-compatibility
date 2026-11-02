@@ -1,0 +1,4 @@
+name = "Iceberg Go"
+section = "library"
+release = { github = "apache/iceberg-go" }
+pin = { match = '(?m)^\s*github\.com/apache/iceberg-go v([0-9][^\s]*)$' }
