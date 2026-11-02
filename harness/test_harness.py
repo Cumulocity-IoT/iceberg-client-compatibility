@@ -51,6 +51,21 @@ class RenderTest(unittest.TestCase):
             render(COLUMNS, CLIENTS, [result("pyiceberg", "0.12.0", "2026-11-09", views={"status": "maybe"})])
 
 
+class PlanTest(unittest.TestCase):
+    def test_window_straddles_a_settled_month_boundary(self):
+        from datetime import datetime, timezone
+
+        from harness.plan import window
+
+        def at(text):
+            return datetime.fromisoformat(text).replace(tzinfo=timezone.utc)
+
+        self.assertEqual(window(at("2026-11-02T14:30:00")), (at("2026-10-31"), at("2026-11-01"), at("2026-11-02")))
+        # Less than a day and an hour after the month started: the previous boundary is used.
+        self.assertEqual(window(at("2026-11-02T00:30:00")), (at("2026-09-30"), at("2026-10-01"), at("2026-10-02")))
+        self.assertEqual(window(at("2027-01-01T05:00:00")), (at("2026-11-30"), at("2026-12-01"), at("2026-12-02")))
+
+
 class RedactTest(unittest.TestCase):
     def test_secrets_are_scrubbed(self):
         cases = {
