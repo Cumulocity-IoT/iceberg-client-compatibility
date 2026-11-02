@@ -60,7 +60,7 @@ meaning = "Minutes until newly ingested data is visible in the client."
 id = "incremental-read"
 group = "Read"
 title = "Incremental read"
-meaning = "Reads only what changed since the last read, across updates and compactions of the table."
+meaning = "Reads only the rows appended since a given snapshot, skipping compactions in between."
 
 [[column]]
 id = "decimal"

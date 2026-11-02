@@ -12,9 +12,21 @@ any client the same way.
 | `run.sh` | Entry point: `clients/<id>/run.sh <plan.json> <out.json>`, run from the repository root |
 | checks (any name) | The checks below. They import or call the connection code of `example.*`, never a copy of it |
 
-`run.sh` reads the settings from the environment (`set -a; . ./.env; set +a` locally, GitHub secrets in CI) and
-installs what the client needs itself, pinned to an exact version: `uv run --script` with inline metadata for
-Python, Maven for Java, Cargo for Rust.
+`run.sh` reads the settings through `harness/env.sh` (a local `.env`, the environment in CI) and installs what the
+client needs itself, pinned to an exact version: `uv run --script` with inline metadata for Python, Maven for Java,
+Cargo for Rust, a versioned download for anything else.
+
+`client.toml` says where releases are published and where the client pins its version, so the release check can
+raise it:
+
+```toml
+release = { pypi = "duckdb" }         # or maven = "group:artifact", crates, github = "owner/repo", dockerhub
+pin = { match = 'duckdb==([0-9][^"]*)' }  # a regex whose one group is the pinned version
+```
+
+The release check replaces that group, in every match in every file of the client's folder, with the latest
+stable release, then runs the client. Pin everything that has to move with the client's version (a Cargo crate
+family, a runtime built for it) through the same `match`.
 
 ## Rules
 
@@ -66,6 +78,10 @@ get appends, so no client needs delete support for them.
 | `nesting` | The leaf at `expect.nested.path` below `expect.nested.column`, through the client's own struct field access, and the list of structs `expect.list.column` | the leaf is `expect.nested.value`, and the list equals `expect.list.value` element by element (positions compared as exact decimals) |
 | `large-values` | `expect.large.column` of the run's row, and the binary `data` of the row in `fixture.trash` with `id = fixture.event` whose `path` ends with `expect.binned.path_suffix` | the string has `chars` characters and `bytes` UTF-8 bytes, all of them `char`; the binary decodes as UTF-8 to `expect.binned.data` |
 | `schema-evolution` | `expect.evolution.column` on the run's row and on the row with `runId = expect.evolution.baseline_run` | the run's row holds `expect.evolution.run`, the baseline row NULL |
+| `incremental-read` | An incremental read of `fixture.table` from the last snapshot committed before `fixture.posted` to the first `append` snapshot committed after it, through the client's incremental or streaming API (not a filter on a full scan or a time-travel difference) | exactly one row comes back, the run's row |
+
+Incremental reads of `latest_inventory` are not checked: its upserts are overwrite snapshots, which Iceberg's
+incremental append scans reject by design. A client without an incremental read API reports `na` and cites it.
 
 For a mismatch, put the expected and the actual value in `note`, shortened to what shows the difference. The check
 before the clients has already confirmed that the run's rows are in the lake, so a client that does not find them

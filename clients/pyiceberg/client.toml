@@ -1,3 +1,4 @@
 name = "PyIceberg"
 section = "library"
 release = { pypi = "pyiceberg" }
+pin = { match = 'pyiceberg\[pyarrow\]==([0-9][^"]*)' }
