@@ -7,8 +7,7 @@
       "status": "ok",
       "data": {
         "namespaces": 9
-      },
-      "note": "ClickHouse lists the tables of each namespace, not the namespaces, so view_measurement, which holds only a view, is not listed."
+      }
     },
     "s3": {
       "status": "ok",

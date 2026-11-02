@@ -29,18 +29,18 @@ to reading tables that are updated with delete files. What each column means is 
 | Apache Doris | 4.1.5 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^9] | ✅ | ✅[^10] | ✅ | ✅ | ✅ | ❌[^11] |
 | Apache Flink | 2.3.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^12] | ✅ | ✅ | ✅ | ❌[^13] |
 | Apache Spark | 4.1.4 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| ClickHouse | 26.10.2.103 | 2026-11-02 | ✅[^14] | ✅ | ✅ | ✅ | ✅ | ➖[^15] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^16] |
-| Daft | 0.7.26 | 2026-11-02 | ✅ | ✅ | ❌[^17] | ➖[^18] | ✅ | ➖[^19] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^20] |
-| DuckDB | 2.0.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^21] | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^22] |
-| Polars | 2.1.0 | 2026-11-02 | ✅ | ✅ | ✅ | ➖[^23] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^24] |
-| StarRocks | 4.1.7 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^25] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Trino | 484 | 2026-11-02 | ⚠️[^26] | ⚠️[^27] | ⚠️[^27] | ✅ | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ⚠️[^27] | ❌[^28] |
+| ClickHouse | 26.10.2.103 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^14] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^15] |
+| Daft | 0.7.26 | 2026-11-02 | ✅ | ✅ | ❌[^16] | ➖[^17] | ✅ | ➖[^18] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^19] |
+| DuckDB | 2.0.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^20] | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^21] |
+| Polars | 2.1.0 | 2026-11-02 | ✅ | ✅ | ✅ | ➖[^22] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^23] |
+| StarRocks | 4.1.7 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^24] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Trino | 484 | 2026-11-02 | ⚠️[^25] | ⚠️[^26] | ⚠️[^26] | ✅ | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ❌[^27] |
 
 ### Products
 
 | Client | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Dremio Enterprise | 26.1.12 | 2026-11-02 | ✅[^29] | ✅[^29] | ✅ | ✅ | ✅ | ➖[^30] | ✅[^31] | ✅[^32] | ✅ | ✅ | ✅ | ✅ |
+| Dremio Enterprise | 26.1.12 | 2026-11-02 | ✅[^28] | ✅[^28] | ✅ | ✅ | ✅ | ➖[^29] | ✅[^30] | ✅[^31] | ✅ | ✅ | ✅ | ✅ |
 
 ### What the columns mean
 
@@ -72,25 +72,24 @@ to reading tables that are updated with delete files. What each column means is 
 [^11]: Apache Doris 4.1.5, Views: Doris 4.1.5 raises "Cannot get engine-name for view" because the view versions record no engine-name, which the Iceberg view spec makes optional; apache/doris#69829 (merged to master on 2026-11-02) loads such views.
 [^12]: Apache Flink 2.3.0, Timestamps: collect() raises a PickleException on TIMESTAMP_LTZ values (FLINK-38418), and to_pandas() returns 2026-11-02T10:11:12.345+05:30 for the instant 2026-11-02T10:11:12.345Z.
 [^13]: Apache Flink 2.3.0, Views: Iceberg's Flink catalog refuses the view: Cannot read view view_measurement.c8y_Temperature: its default-namespace 'cdc_measurement' does not match the view's namespace 'view_measurement', and Flink resolves references against the view's own namespace.
-[^14]: ClickHouse 26.10.2.103, Login: ClickHouse lists the tables of each namespace, not the namespaces, so view_measurement, which holds only a view, is not listed.
-[^15]: ClickHouse 26.10.2.103, Incremental read: ClickHouse reads an Iceberg table at one snapshot (iceberg_snapshot_id, iceberg_timestamp_ms) and has no incremental read between snapshots (clickhouse.com/docs/engines/table-engines/integrations/iceberg).
-[^16]: ClickHouse 26.10.2.103, Views: ClickHouse's Iceberg REST catalog loads only tables, never views (src/Databases/DataLake/RestCatalog.cpp), so the view is an unknown table (UNKNOWN_TABLE).
-[^17]: Daft 0.7.26, CDC tables: NOT (source = S) counts 0 of the 69120 rows of other devices, which matches Eventual-Inc/Daft#7657, a comparison under NOT rewritten onto the source bucket partition.
-[^18]: Daft 0.7.26, Latest tables: Daft plans Iceberg reads with PyIceberg, which raises on equality delete files; Daft applies position deletes only (Eventual-Inc/Daft#2458, equality deletes blocked by PyIceberg).
-[^19]: Daft 0.7.26, Incremental read: Daft's read_iceberg reads one snapshot, branch or tag and has no snapshot-range read (Eventual-Inc/Daft#4139, open).
-[^20]: Daft 0.7.26, Views: Daft's catalogs resolve only tables and namespaces, and its Iceberg catalog loads names with PyIceberg's load_table, so the view is not found (docs.daft.ai/en/stable/connectors/custom-catalogs): InvalidSQLException: Table not found: lake.view_measurement.c8y_Temperature
-[^21]: DuckDB 2.0.0, Incremental read: iceberg_scan reads one snapshot and has no start/end snapshot range (Binder Error: Invalid named parameter "start_snapshot_id" for function iceberg_scan); incremental reads are an open request (duckdb/duckdb-iceberg#1355).
-[^22]: DuckDB 2.0.0, Views: DuckDB runs only an Iceberg view's 'duckdb' SQL representation and these views carry DremioSQL, spark, trino and starrocks (Binder Error: Cannot query Iceberg view '"c8y_Temperature"': no SQL representation with dialect 'duckdb').
-[^23]: Polars 2.1.0, Latest tables: The polars-iceberg planner rejects equality delete files and PyIceberg's reader, the fallback, raises 'PyIceberg does not yet support equality deletes' (apache/iceberg-python#1210).
-[^24]: Polars 2.1.0, Views: Polars reads Iceberg tables only: scan_iceberg and SQLContext.register_catalog load a name with load_table, which raises NoSuchTableError for the view (docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html).
-[^25]: StarRocks 4.1.7, Incremental read: StarRocks SQL reads an Iceberg table at one snapshot only (VERSION AS OF, TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel).
-[^26]: Trino 484, Login: needs the `s3-region` workaround: Without it the catalog does not load and the server does not start: SdkClientException: Unable to load region from any of the providers in the chain DefaultAwsRegionProviderChain.
-[^27]: Trino 484, S3, CDC tables, Schema evolution, Incremental read, Decimal, Timestamps, Nesting, Large values, Identifiers: needs the `case-insensitive-names` workaround: Without it: TABLE_NOT_FOUND: line 1:15: Table 'lake.cdc_measurement.c8y_temperature' does not exist
-[^28]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set
-[^29]: Dremio Enterprise 26.1.12, Login, S3: A Dremio data source was provisioned with the OAuth client credential and credential vending.
-[^30]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
-[^31]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
-[^32]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
+[^14]: ClickHouse 26.10.2.103, Incremental read: ClickHouse reads an Iceberg table at one snapshot (iceberg_snapshot_id, iceberg_timestamp_ms) and has no incremental read between snapshots (clickhouse.com/docs/engines/table-engines/integrations/iceberg).
+[^15]: ClickHouse 26.10.2.103, Views: ClickHouse's Iceberg REST catalog loads only tables, never views (src/Databases/DataLake/RestCatalog.cpp), so the view is an unknown table (UNKNOWN_TABLE).
+[^16]: Daft 0.7.26, CDC tables: NOT (source = S) counts 0 of the 69120 rows of other devices, which matches Eventual-Inc/Daft#7657, a comparison under NOT rewritten onto the source bucket partition.
+[^17]: Daft 0.7.26, Latest tables: Daft plans Iceberg reads with PyIceberg, which raises on equality delete files; Daft applies position deletes only (Eventual-Inc/Daft#2458, equality deletes blocked by PyIceberg).
+[^18]: Daft 0.7.26, Incremental read: Daft's read_iceberg reads one snapshot, branch or tag and has no snapshot-range read (Eventual-Inc/Daft#4139, open).
+[^19]: Daft 0.7.26, Views: Daft's catalogs resolve only tables and namespaces, and its Iceberg catalog loads names with PyIceberg's load_table, so the view is not found (docs.daft.ai/en/stable/connectors/custom-catalogs): InvalidSQLException: Table not found: lake.view_measurement.c8y_Temperature
+[^20]: DuckDB 2.0.0, Incremental read: iceberg_scan reads one snapshot and has no start/end snapshot range (Binder Error: Invalid named parameter "start_snapshot_id" for function iceberg_scan); incremental reads are an open request (duckdb/duckdb-iceberg#1355).
+[^21]: DuckDB 2.0.0, Views: DuckDB runs only an Iceberg view's 'duckdb' SQL representation and these views carry DremioSQL, spark, trino and starrocks (Binder Error: Cannot query Iceberg view '"c8y_Temperature"': no SQL representation with dialect 'duckdb').
+[^22]: Polars 2.1.0, Latest tables: The polars-iceberg planner rejects equality delete files and PyIceberg's reader, the fallback, raises 'PyIceberg does not yet support equality deletes' (apache/iceberg-python#1210).
+[^23]: Polars 2.1.0, Views: Polars reads Iceberg tables only: scan_iceberg and SQLContext.register_catalog load a name with load_table, which raises NoSuchTableError for the view (docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html).
+[^24]: StarRocks 4.1.7, Incremental read: StarRocks SQL reads an Iceberg table at one snapshot only (VERSION AS OF, TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel).
+[^25]: Trino 484, Login: needs the `s3-region` workaround: Without it the catalog does not load and the server does not start: SdkClientException: Unable to load region from any of the providers in the chain DefaultAwsRegionProviderChain.
+[^26]: Trino 484, S3, CDC tables, Schema evolution, Incremental read, Decimal, Timestamps, Nesting, Large values, Identifiers: needs the `case-insensitive-names` workaround: Without it: TABLE_NOT_FOUND: line 1:15: Table 'lake.cdc_measurement.c8y_temperature' does not exist
+[^27]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set
+[^28]: Dremio Enterprise 26.1.12, Login, S3: A Dremio data source was provisioned with the OAuth client credential and credential vending.
+[^29]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
+[^30]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
+[^31]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
 <!-- END GENERATED TABLE -->
 
 ✅ works · ⚠️ works with a workaround, see the footnote · ❌ fails · ➖ not supported by the client ·
