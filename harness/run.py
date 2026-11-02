@@ -56,7 +56,12 @@ def main(clients):
     for client in clients or sorted(p.parent.name for p in (ROOT / "clients").glob("*/run.sh")):
         out = work / f"{client}.json"
         print(f"== {client}", flush=True)
-        if subprocess.run([f"clients/{client}/run.sh", str(plan_path), str(out)], cwd=ROOT).returncode or not out.exists():
+        try:
+            failed = subprocess.run([f"clients/{client}/run.sh", str(plan_path), str(out)], cwd=ROOT).returncode
+        except OSError as error:  # a run.sh that cannot start is that client's crash, not the run's
+            print(f"{client}: {error}", flush=True)
+            failed = True
+        if failed or not out.exists():
             crashed.append(client)
             continue
         results[client] = json.loads(redact(out.read_text()))
