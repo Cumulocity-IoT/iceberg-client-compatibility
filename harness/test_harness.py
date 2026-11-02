@@ -87,6 +87,8 @@ class RedactTest(unittest.TestCase):
             "X-Amz-Security-Token=FwoGZXIvYXdz&X-Amz-Date=2026": "X-Amz-Security-Token=REDACTED&X-Amz-Date",
             "The AWS Access Key Id ASIAQ3EGVBCDEFGHIJKL you provided": "Key Id REDACTED you",
             '"s3.access-key-id": "ASIAQ3EGVBCDEFGHIJKL"': '"s3.access-key-id": "REDACTED"',
+            '{"userName": "compat", "password": "s3cret-pw"}': '"password": "REDACTED"',
+            "Authorization: _dremio6u2rgc4q8mrcsl3kd2kqvp1sjf": "_dremioREDACTED",
         }
         for raw, expected in cases.items():
             self.assertIn(expected, redact(raw), raw)

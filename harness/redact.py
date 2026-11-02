@@ -12,11 +12,12 @@ _PATTERNS = [
     re.compile(r"(?i)(\b(?:sig|x-amz-security-token|x-amz-signature|x-amz-credential)=)[^&\s\"'<>]+"),
     # AWS access key ids, long-term (AKIA) and temporary (ASIA), wherever they appear.
     re.compile(r"()\b(?:AKIA|ASIA)[0-9A-Z]{16}\b"),
-    # Authorization headers.
+    # Authorization headers, and Dremio's "_dremio<token>" session token.
     re.compile(r"(?i)(\b(?:bearer|basic)\s+)[A-Za-z0-9._~+/=-]{8,}"),
+    re.compile(r"(_dremio)[A-Za-z0-9]{8,}"),
     # Catalog and storage properties that carry secrets, as key=value or "key": "value".
     re.compile(
-        r"(?i)([\"']?\b(?:access_token|client_secret|credential|token|s3\.access-key-id|s3\.secret-access-key"
+        r"(?i)([\"']?\b(?:access_token|client_secret|credential|password|token|s3\.access-key-id|s3\.secret-access-key"
         r"|s3\.session-token|adls\.sas-token[\w.-]*)[\"']?\s*[:=]\s*[\"']?)[^\"'\s,}&]+"
     ),
 ]

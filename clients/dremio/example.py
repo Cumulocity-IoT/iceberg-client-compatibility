@@ -1,47 +1,58 @@
 # /// script
 # requires-python = ">=3.11"
 # ///
-"""Query the Streaming Lake Ingestion lake through Cumulocity DataHub (Dremio) and print a few rows.
+"""Query the Streaming Lake Ingestion lake with Dremio Enterprise's REST API and print a few rows.
 
-DataHub reads the tenant's Iceberg catalog inside the platform; its Dremio source is named after the
-tenant id, so a table is addressed as <tenant>.<namespace>.<table>.
+The lake is the Dremio source Cumulocity provisions for the tenant, named after the tenant id, so a
+table is addressed as <tenant>.<namespace>.<table>. Settings: DREMIO_URL (for example
+https://datahub.<domain>:9447), DREMIO_USER, DREMIO_PASSWORD and C8Y_TENANT.
 """
 
-import base64
 import json
 import os
 import time
 import urllib.request
 from decimal import Decimal
 
-BASE = os.environ["C8Y_BASEURL"].rstrip("/") + "/service/datahub/dremio/api/v3"
+BASE = os.environ["DREMIO_URL"].rstrip("/")
 TENANT = os.environ["C8Y_TENANT"]
-AUTH = "Basic " + base64.b64encode(
-    f"{TENANT}/{os.environ['C8Y_USER']}:{os.environ['C8Y_PASSWORD']}".encode()
-).decode()
+_token = None
 
 
-def _call(path, body=None):
-    request = urllib.request.Request(
-        BASE + path,
-        data=None if body is None else json.dumps(body).encode(),
-        headers={"Authorization": AUTH, "Content-Type": "application/json", "Accept": "application/json"},
-    )
+def _request(path, body=None, auth=True):
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    if auth:
+        headers["Authorization"] = token()
+    request = urllib.request.Request(BASE + path, data=None if body is None else json.dumps(body).encode(), headers=headers)
     with urllib.request.urlopen(request, timeout=60) as response:
-        # DataHub writes decimal(38,9) as exact JSON number literals; a float would round them.
+        # Dremio writes decimal(38,9) as exact JSON number literals; a float would round them.
         return json.load(response, parse_float=Decimal)
 
 
+def token():
+    """The session token of a Dremio login, which the API takes as "_dremio<token>"."""
+    global _token
+    if _token is None:
+        login = _request("/apiv2/login", {"userName": os.environ["DREMIO_USER"], "password": os.environ["DREMIO_PASSWORD"]}, auth=False)
+        _token = "_dremio" + login["token"]
+    return _token
+
+
+def info():
+    """Dremio's server information, its version among it."""
+    return _request("/api/v3/info")
+
+
 def query(sql, context=None, timeout=600):
-    """Runs one SQL query as a DataHub job and returns its rows as a list of dicts."""
+    """Runs one SQL query as a Dremio job and returns its rows as a list of dicts."""
     return query_typed(sql, context, timeout)[0]
 
 
 def query_typed(sql, context=None, timeout=600):
     """Like query, and also returns the result's column types by name, for example {"n": {"name": "BIGINT"}}."""
-    job = _call("/sql", {"sql": sql, **({"context": context} if context else {})})["id"]
+    job = _request("/api/v3/sql", {"sql": sql, **({"context": context} if context else {})})["id"]
     deadline = time.monotonic() + timeout
-    while (state := _call(f"/job/{job}"))["jobState"] not in ("COMPLETED", "FAILED", "CANCELED"):
+    while (state := _request(f"/api/v3/job/{job}"))["jobState"] not in ("COMPLETED", "FAILED", "CANCELED"):
         if time.monotonic() > deadline:
             raise TimeoutError(f"job {job} still {state['jobState']} after {timeout}s")
         time.sleep(1)
@@ -49,7 +60,7 @@ def query_typed(sql, context=None, timeout=600):
         raise RuntimeError(f"job {job} {state['jobState']}: {state.get('errorMessage', '')}")
     rows, types = [], {}
     while len(rows) < state.get("rowCount", 0):  # results come in pages of at most 500 rows
-        page = _call(f"/job/{job}/results?offset={len(rows)}&limit=500")
+        page = _request(f"/api/v3/job/{job}/results?offset={len(rows)}&limit=500")
         rows += page["rows"]
         types = {c["name"]: c["type"] for c in page.get("schema", [])}
     return rows, types

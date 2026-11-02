@@ -38,6 +38,9 @@ jobs:
       C8Y_TENANT: ${{ vars.C8Y_TENANT }}
       C8Y_USER: ${{ vars.C8Y_USER }}
       C8Y_PASSWORD: ${{ secrets.C8Y_PASSWORD }}
+      DREMIO_URL: ${{ vars.DREMIO_URL }}
+      DREMIO_USER: ${{ vars.DREMIO_USER }}
+      DREMIO_PASSWORD: ${{ secrets.DREMIO_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - name: Free disk space for the engine images

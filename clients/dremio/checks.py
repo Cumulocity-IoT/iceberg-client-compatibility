@@ -1,34 +1,29 @@
 # /// script
 # requires-python = ">=3.11"
 # ///
-"""Runs the contract checks through the DataHub REST API: checks.py <plan.json> <out.json>."""
+"""Runs the contract checks through Dremio's REST API: checks.py <plan.json> <out.json>."""
 
 import base64
 import json
+import re
 import sys
-import urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
-from example import AUTH, BASE, TENANT, query, query_typed  # noqa: E402
+from example import TENANT, info, query, query_typed  # noqa: E402
 from harness.redact import redact  # noqa: E402
 
-# Tested through Cumulocity DataHub, which runs Dremio Enterprise and reads the catalog inside the platform;
-# these cells state how DataHub's provisioning configures that Dremio source.
-LOGIN = ("Tested through Cumulocity DataHub, whose provisioning gives the Dremio source an OAuth2 client "
-         "credential for the catalog.")
-VENDED = "Tested through Cumulocity DataHub, whose provisioning sets the Dremio source to use vended storage credentials."
+# The Dremio source is the one Cumulocity provisions for the tenant; these cells state how that source reaches the
+# catalog and the storage, which the queries through it then prove.
+LOGIN = "The Dremio source Cumulocity provisions logs in to the catalog with an OAuth2 client credential."
+VENDED = "The Dremio source Cumulocity provisions reads the storage with vended credentials."
 
 INCREMENTAL = ("Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause "
                "or table function for the rows appended between two snapshots "
                "(docs.dremio.com/current/reference/sql/commands/SELECT-statements).")
 
-# shortcut: a tenant user may read neither sys.version nor any other Dremio system table, so the Dremio Enterprise
-# release comes from the DataHub version that bundles it (dremio-ee-utils.version in datahub-console's
-# gradle.properties for that build); add a line when DataHub upgrades, until DataHub exposes Dremio's version.
-DREMIO_FOR_DATAHUB = {"14.0.760": "26.1.12"}
 
 
 def ts(iso):
@@ -206,13 +201,9 @@ def main(plan_path, out_path):
         "schema-evolution": run(schema_evolution, plan),
         "incremental-read": {"status": "na", "note": INCREMENTAL},
     }
-    request = urllib.request.Request(BASE.removesuffix("/dremio/api/v3") + "/version",
-                                     headers={"Authorization": AUTH, "Accept": "application/json"})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        datahub = json.load(response)["versionId"]
-    version = DREMIO_FOR_DATAHUB.get(datahub, f"unknown (DataHub {datahub})")
-    out = {"client": "dremio", "version": version, "build": f"through Cumulocity DataHub {datahub} REST API",
-           "checks": checks}
+    release = info()["version"]  # such as 26.1.12-202510150000000000-1a2b3c4d; the row shows the release part
+    version = re.match(r"[0-9]+(\.[0-9]+)*", release).group(0)
+    out = {"client": "dremio", "version": version, "build": f"Dremio Enterprise {release}, REST API", "checks": checks}
     Path(out_path).write_text(json.dumps(out, indent=2) + "\n")
     for name, result in checks.items():
         print(f"{name}: {result['status']}")
