@@ -18,7 +18,9 @@ Python, Maven for Java, Cargo for Rust.
 
 ## Rules
 
-* **Read only.** The catalog principal is read-only anyway. Never write to Cumulocity, except DataHub SQL queries.
+* **Read only.** A client never writes to Cumulocity, the catalog or the lake, by any route, DataHub included: SQL
+  it sends is `SELECT` only. The catalog principal is read-only anyway. Test data reaches the lake only through the
+  harness, which posts it to Cumulocity like a device.
 * **No secrets in output.** Never print or write tokens, secrets or vended credentials, not even in error text you
   pass on; the harness scrubs `out.json` again, but logs it cannot.
 * **Vended credentials only.** Configure no storage keys and no region, except as the named `s3-region`
