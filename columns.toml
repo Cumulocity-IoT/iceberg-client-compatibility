@@ -1,0 +1,98 @@
+# The columns of the compatibility table, in display order. A column shows only once a result
+# carries it, so the later-phase columns stay hidden until a client reports them.
+
+[[column]]
+id = "catalog-login"
+group = "Connect"
+title = "Login"
+test = "OAuth2 client credentials with an explicit token endpoint and scope; list namespaces"
+
+[[column]]
+id = "s3"
+group = "Connect"
+title = "S3"
+test = "Read rows with vended credentials only: no storage keys, no region configured"
+
+[[column]]
+id = "adls"
+group = "Connect"
+title = "ADLS"
+test = "The same against an Azure Data Lake Storage lake"
+
+[[column]]
+id = "refresh"
+group = "Connect"
+title = "Refresh"
+test = "Fetch a new token and new storage credentials when they are about to expire"
+
+[[column]]
+id = "long-session"
+group = "Connect"
+title = "Long session"
+test = "Keep reading after the real token and storage credential lifetimes have passed"
+
+[[column]]
+id = "cdc-tables"
+group = "Read"
+title = "CDC tables"
+test = "Filters on each data type's partition columns, including NOT and month boundaries"
+
+[[column]]
+id = "latest-tables"
+group = "Read"
+title = "Latest tables"
+test = "Exactly one row per id after upserts, which Streaming Lake Ingestion writes as equality deletes"
+
+[[column]]
+id = "schema-evolution"
+group = "Read"
+title = "Schema evolution"
+test = "Columns added later read as NULL for older rows and as values for newer ones"
+
+[[column]]
+id = "freshness"
+group = "Read"
+title = "Freshness"
+test = "Minutes until a new snapshot is visible"
+
+[[column]]
+id = "incremental-read"
+group = "Read"
+title = "Incremental read"
+test = "Incremental reads across an overwrite snapshot and a compaction"
+
+[[column]]
+id = "decimal"
+group = "Types"
+title = "Decimal"
+test = "decimal(38,9) values come back exactly"
+
+[[column]]
+id = "timestamps"
+group = "Types"
+title = "Timestamps"
+test = "timestamptz returns the same instant with its full precision, whatever the session time zone"
+
+[[column]]
+id = "nesting"
+group = "Types"
+title = "Nesting"
+test = "Struct fields, lists of structs, nesting 16 levels deep"
+
+[[column]]
+id = "large-values"
+group = "Types"
+title = "Large values"
+test = "Strings of 32,768 bytes, large binary values, wide tables"
+
+[[column]]
+id = "identifiers"
+group = "Names"
+title = "Identifiers"
+test = "camelCase, suffixed and escaped names, '-', reserved words; listed, quoted and unquoted"
+
+[[column]]
+id = "views"
+group = "Views"
+title = "Views"
+test = "The flattened views return the same rows as their base tables"

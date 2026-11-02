@@ -1,0 +1,3 @@
+name = "Iceberg Java"
+section = "library"
+release = { maven = "org.apache.iceberg:iceberg-core" }

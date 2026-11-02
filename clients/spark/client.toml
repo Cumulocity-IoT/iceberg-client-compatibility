@@ -1,0 +1,4 @@
+name = "Apache Spark"
+section = "engine"
+built_on = "iceberg-java"
+release = { pypi = "pyspark" }

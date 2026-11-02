@@ -1,0 +1,4 @@
+name = "Apache DataFusion"
+section = "engine"
+built_on = "iceberg-rust"
+release = { crates = "iceberg-datafusion" }
