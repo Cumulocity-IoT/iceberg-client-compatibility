@@ -24,10 +24,15 @@ Python, Maven for Java, Cargo for Rust.
 * **No secrets in output.** Never print or write tokens, secrets or vended credentials, not even in error text you
   pass on; the harness scrubs `out.json` again, but logs it cannot.
 * **Vended credentials only.** Configure no storage keys and no region, except as the named `s3-region`
-  workaround.
+  workaround. `run.sh` sources `harness/env.sh`, which loads the settings and keeps the machine's own AWS and
+  Azure configuration away from the client.
 * **Workarounds are named switches.** Run a check without switches first. Only if it fails, run it again with the
-  switch that fixes it, and report `warn` with `"workaround": "<name>"`. Known names: `s3-region`,
-  `token-refresh`, `delegation-header`, `case-insensitive-names`.
+  switch that fixes it, and report `warn` with `"workaround": "<name>"`. A switch needed to connect at all, such
+  as `tls`, is reported on `catalog-login` only; the other checks report how they behave once connected. Known
+  names: `s3-region`, `token-refresh`, `case-insensitive-names`, `tls`. Everything in the README's catalog
+  settings, the delegation header and the scope included, is standard configuration, never a workaround.
+* **Pin what decides the result.** Pin the client and every library that reads the data (for example pyarrow)
+  to exact versions, and name them in `build`.
 
 ## Checks (no fixtures needed)
 
@@ -44,9 +49,14 @@ clients.
 | `identifiers` | Read the escaped table and its camelCase column | rows come back and the column is found under its exact name |
 | `views` | On the view and on its base table (the measurement table): count rows with `source = S` in the window | both counts are equal and above 0 |
 
-Status values: `ok`, `warn` (passes only with a workaround), `fail`, `na` (the client does not support the
-feature by design and documents that upstream; say where in `note`), `inconclusive` (a precondition did not
-hold, for example no rows on one side of the boundary).
+Status values:
+
+* `ok`, and `warn` when it passes only with a workaround.
+* `fail`, with one factual sentence in `note`.
+* `na`: the client does not support the feature, documented upstream or stated by an explicit error of the client.
+  The `note` cites the source.
+* `inconclusive`: a precondition was checked and does not hold, for example a table with no snapshot. Zero rows
+  alone is not enough: a table that has a snapshot but reads as empty is a `fail`.
 
 ## Output
 

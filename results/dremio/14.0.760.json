@@ -1,0 +1,48 @@
+{
+  "client": "dremio",
+  "version": "14.0.760",
+  "build": "DataHub REST API",
+  "checks": {
+    "catalog-login": {
+      "status": "na",
+      "note": "DataHub connects to the catalog inside the platform, not through the public endpoint"
+    },
+    "s3": {
+      "status": "na",
+      "note": "DataHub connects to the catalog inside the platform, not through the public endpoint"
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5001,
+        "ids": 5001
+      }
+    },
+    "identifiers": {
+      "status": "inconclusive",
+      "data": {
+        "rows": 0,
+        "column_found": true
+      },
+      "note": "The escaped table has no snapshot yet, so it holds no rows to read."
+    },
+    "views": {
+      "status": "ok",
+      "data": {
+        "view": 34560,
+        "table": 34560
+      }
+    }
+  },
+  "date": "2026-11-02"
+}

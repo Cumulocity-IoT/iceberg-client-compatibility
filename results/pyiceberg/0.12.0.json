@@ -1,0 +1,42 @@
+{
+  "client": "pyiceberg",
+  "version": "0.12.0",
+  "build": "pyiceberg 0.12.0, pyarrow 26.0.0",
+  "checks": {
+    "catalog-login": {
+      "status": "ok"
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 1
+      }
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "na",
+      "note": "PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210)."
+    },
+    "identifiers": {
+      "status": "inconclusive",
+      "data": {
+        "rows": 0
+      },
+      "note": "The table loads with the column under its exact name but has no snapshot, so there are no rows to read."
+    },
+    "views": {
+      "status": "na",
+      "note": "PyIceberg loads a view's metadata and SQL text but has no engine to run it (py.iceberg.apache.org/api/#load-a-view)."
+    }
+  },
+  "date": "2026-11-02"
+}

@@ -1,0 +1,47 @@
+{
+  "build": "iceberg-datafusion 0.10.1, datafusion 53.1.0, iceberg 0.10.1, iceberg-catalog-rest 0.10.1, iceberg-storage-opendal 0.10.1, opendal 0.57.0, reqwest 0.12.28",
+  "checks": {
+    "catalog-login": {
+      "data": {
+        "namespaces": 15
+      },
+      "note": "iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)",
+      "status": "warn",
+      "workaround": "tls"
+    },
+    "cdc-tables": {
+      "data": {
+        "after": 51840,
+        "before": 51840,
+        "device": 34560,
+        "not_device": 69120,
+        "total": 103680
+      },
+      "status": "ok"
+    },
+    "identifiers": {
+      "note": "the escaped table has no snapshot in the catalog, so there are no rows to read",
+      "status": "inconclusive"
+    },
+    "latest-tables": {
+      "data": {
+        "ids": 5001,
+        "rows": 5001
+      },
+      "status": "ok"
+    },
+    "s3": {
+      "data": {
+        "rows": 5
+      },
+      "status": "ok"
+    },
+    "views": {
+      "note": "iceberg-rust, which iceberg-datafusion is built on, has no Iceberg view support (apache/iceberg-rust#55)",
+      "status": "na"
+    }
+  },
+  "client": "datafusion",
+  "version": "0.10.1",
+  "date": "2026-11-02"
+}

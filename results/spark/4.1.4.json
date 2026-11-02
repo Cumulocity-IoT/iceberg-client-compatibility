@@ -1,0 +1,48 @@
+{
+  "client": "spark",
+  "version": "4.1.4",
+  "build": "pyspark 4.1.4, iceberg-spark-runtime-4.1_2.13 1.12.0, iceberg-aws-bundle 1.12.0, Java 21.0.2",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "namespaces": 15
+      }
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 5
+      }
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5001,
+        "ids": 5001
+      }
+    },
+    "identifiers": {
+      "status": "inconclusive",
+      "note": "The escaped table has no snapshot, so no rows could come back."
+    },
+    "views": {
+      "status": "ok",
+      "data": {
+        "view": 34560,
+        "table": 34560
+      }
+    }
+  },
+  "date": "2026-11-02"
+}

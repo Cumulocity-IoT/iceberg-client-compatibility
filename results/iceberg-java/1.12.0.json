@@ -1,0 +1,48 @@
+{
+  "client": "iceberg-java",
+  "version": "1.12.0",
+  "build": "iceberg-core, iceberg-data, iceberg-parquet, iceberg-aws, iceberg-aws-bundle 1.12.0, hadoop-client 3.4.3, Java 25.0.4.1+1-LTS",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "namespaces": 15
+      }
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 5
+      }
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5001,
+        "ids": 5001
+      }
+    },
+    "identifiers": {
+      "status": "inconclusive",
+      "note": "The escaped table has no snapshot, so no rows could come back.",
+      "data": {
+        "rows": 0
+      }
+    },
+    "views": {
+      "status": "na",
+      "note": "Iceberg Java loads the view metadata (dialects DremioSQL, spark, trino, starrocks) but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec)."
+    }
+  },
+  "date": "2026-11-02"
+}
