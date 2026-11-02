@@ -49,8 +49,25 @@ clients.
 | `s3` | Read rows of the measurement table, with vended credentials only | at least one row comes back |
 | `cdc-tables` | On the measurement table: `total`, `device` (`source = S`), `not_device` (`NOT (source = S)`), `before` (`time < boundary`), `after` (`time >= boundary`) | `device + not_device = total`, `before + after = total`, and `device`, `before`, `after` are all above 0 |
 | `latest-tables` | On the latest table: `rows` = count of rows, `ids` = count of distinct `id` | `rows = ids` and both above 0 |
-| `identifiers` | Read the escaped table and its camelCase column | rows come back and the column is found under its exact name |
 | `views` | On the view and on its base table (the measurement table): count rows with `source = S` in the window | both counts are equal and above 0 |
+
+## Checks on the fixture data
+
+The harness posts a fixture event for every run and waits until it is in the lake before any client runs. The
+plan's `fixture` section names its tables and `run_id`, and `fixture.expect` holds every expected value. All
+checks below read the run's row: the row of `fixture.table` with `runId = fixture.run_id`. These tables only
+get appends, so no client needs delete support for them.
+
+| Column id | Check | `ok` when |
+|---|---|---|
+| `identifiers` | The run's row of the escaped table (`plan.escaped`, column `runId`), and on the run's row of `fixture.table` the columns named in `expect.names` (camelCase, a dash, an escape, two reserved words) | the escaped table returns the row, and every column is found under its exact name with the expected value |
+| `decimal` | The columns in `expect.decimals` | each equals its expected value **exactly**: compare as exact decimals (`BigDecimal`, Python `Decimal`), and convert a float exactly (`new BigDecimal(double)`, `Decimal(float)`), never through a short string form |
+| `timestamps` | The column `expect.timestamp.column`, read with the session or process time zone set to `Asia/Kolkata` (UTC+05:30) | it is the instant `expect.timestamp.value`, to the millisecond |
+| `nesting` | The leaf at `expect.nested.path` below `expect.nested.column`, through the client's own struct field access, and the list of structs `expect.list.column` | the leaf is `expect.nested.value`, and the list equals `expect.list.value` element by element (positions compared as exact decimals) |
+| `large-values` | `expect.large.column` of the run's row, and the binary `data` of the row in `fixture.trash` with `id = fixture.event` whose `path` ends with `expect.binned.path_suffix` | the string has `chars` characters and `bytes` UTF-8 bytes, all of them `char`; the binary decodes as UTF-8 to `expect.binned.data` |
+| `schema-evolution` | `expect.evolution.column` on the run's row and on the row with `runId = expect.evolution.baseline_run` | the run's row holds `expect.evolution.run`, the baseline row NULL |
+
+For a mismatch, put the expected and the actual value in `note`, shortened to what shows the difference.
 
 Status values:
 

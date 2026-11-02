@@ -33,8 +33,8 @@ def plan(now, run_id):
         # The temperature simulator of the test tenant writes this device's measurements.
         "measurement": {"namespace": "cdc_measurement", "table": "c8y_Temperature", "source": "811216"},
         "latest": {"namespace": "latest_inventory", "table": "inventory"},
-        # A table name with escapes (from an OPC UA node id) and a camelCase column.
-        "escaped": {"namespace": "cdc_inventory", "table": "opcuaVal_ns_x003D2_x003Bi_x003D10", "column": "lastUpdated"},
+        # The fixture's escaped table (fragment compat.Escaped) and its camelCase column.
+        "escaped": {"namespace": "cdc_event", "table": "compat_x002EEscaped", "column": "runId"},
         "view": {"namespace": "view_measurement", "view": "c8y_Temperature"},
         # Only for the s3-region workaround: the region the catalog vends for this lake.
         "region": "eu-central-1",

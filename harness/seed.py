@@ -25,6 +25,34 @@ DECIMALS = {"decimalValue": "1.2345678901234567E19", "fractionDecimal": "0.12345
 NESTING = 13  # objects below "nested": with the fragment, "nested" and the leaf, the path is 16 deep
 TOO_DEEP = 15  # one path deeper than the limit, so Iceflow bins it into cdc_rejected.trash
 UPDATES = 3  # quick inventory updates within one batch
+# Posted once with --baseline, before addedLater existed, so its data file lacks that column for good.
+BASELINE_RUN = "baseline-20261102T144935Z"
+
+
+def fixture_plan(seeded):
+    """Where the fixture lands in the lake and what every client must read back (verified on 2026-11-02)."""
+    run_id = seeded["run_id"]
+    return {
+        **seeded,
+        "table": {"namespace": "cdc_event", "table": FRAGMENT},
+        "escaped": {"namespace": "cdc_event", "table": "compat_x002EEscaped"},
+        "trash": {"namespace": "cdc_rejected", "table": "trash"},
+        "expect": {
+            "decimals": {"decimalValue": "12345678901234567000.000000000", "fractionDecimal": "0.123456789",
+                         "tinyDecimal": "0.000000001"},
+            "timestamp": {"column": "stampMillis", "value": "2026-11-02T10:11:12.345Z"},
+            "nested": {"column": "nested", "path": [f"level{i}" for i in range(1, NESTING + 1)] + ["leaf"],
+                       "value": "deepest"},
+            "list": {"column": "listOfStructs", "value": [{"position": "1.000000000", "label": "first"},
+                                                          {"position": "2.000000000", "label": "second"}]},
+            "large": {"column": "largeText", "chars": 16384, "bytes": 32768, "char": "ä"},
+            "binned": {"path_suffix": "/tooDeep/" + "/".join(f"level{i}" for i in range(1, TOO_DEEP + 1)) + "/leaf",
+                       "data": '"deepest"'},
+            "names": {"camelCaseName": "camel", "dash-name": "dash", "dot_x002Ename": "dot",
+                      "value": "reserved word value", "select": "reserved word select"},
+            "evolution": {"column": "addedLater", "baseline_run": BASELINE_RUN, "baseline": None, "run": run_id},
+        },
+    }
 
 
 def _session():
