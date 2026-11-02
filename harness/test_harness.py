@@ -1,7 +1,9 @@
 import unittest
 
 from harness.redact import redact
+from harness.releases import bump, latest
 from harness.render import render, version_key
+from harness.summary import changes
 
 COLUMNS = [
     {"id": "catalog-login", "title": "Login", "meaning": "Logs in."},
@@ -85,6 +87,28 @@ class RedactTest(unittest.TestCase):
     def test_harmless_text_is_kept(self):
         text = '{"token_type": "bearer", "issued_token_type": "urn:ietf:params:oauth:token-type:access_token"}'
         self.assertEqual(text, redact(text))
+
+
+class ReleasesTest(unittest.TestCase):
+    def test_latest_skips_pre_releases_and_reads_tags(self):
+        self.assertEqual("1.10.0", latest(["1.9.2", "1.10.0", "1.11.0rc1", "1.11.0-SNAPSHOT"]))
+        self.assertEqual("0.4.0", latest(["v0.3.1", "v0.4.0", "v0.5.0-rc1"]))
+        tags = ["v25.10.1.3832-stable", "v25.8.11.66-lts", "v25.11.1.1-testing"]
+        self.assertEqual("25.10.1.3832", latest(tags, r"v([0-9.]+)-stable"))
+        self.assertIsNone(latest(["2.0.0b1"]))
+
+    def test_bump_replaces_only_the_group_everywhere(self):
+        text = 'iceberg = "=0.10.1"\niceberg-datafusion = { version = "=0.10.1", features = ["x"] }\ndatafusion = "=53.1.0"\n'
+        match = r'(?m)^iceberg[a-z-]* = (?:\{ version = )?"=([0-9][^"]*)"'
+        self.assertEqual(text.replace("0.10.1", "0.11.0"), bump(text, match, "0.11.0"))
+
+
+class SummaryTest(unittest.TestCase):
+    def test_changes_lists_only_differing_cells(self):
+        before = {"s3": {"status": "ok"}, "views": {"status": "na"}, "decimal": {"status": "ok"}}
+        after = {"s3": {"status": "ok"}, "views": {"status": "fail"}, "incremental-read": {"status": "ok"}}
+        self.assertEqual([("decimal", "ok", None), ("incremental-read", None, "ok"), ("views", "na", "fail")],
+                         changes(before, after))
 
 
 if __name__ == "__main__":

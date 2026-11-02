@@ -26,7 +26,15 @@ pin = { match = 'duckdb==([0-9][^"]*)' }  # a regex whose one group is the pinne
 
 The release check replaces that group, in every match in every file of the client's folder, with the latest
 stable release, then runs the client. Pin everything that has to move with the client's version (a Cargo crate
-family, a runtime built for it) through the same `match`.
+family) through the same `match`. A runtime built per release line of the client, such as Iceberg's Spark runtime,
+is declared as `requires`:
+
+```toml
+requires = { maven = "org.apache.iceberg:iceberg-spark-runtime-{minor}_2.13", pin = 'ICEBERG = "([^"]+)"' }
+```
+
+The release check then takes the newest release whose `major.minor` line has that runtime, and raises the
+runtime's own pin to its latest release.
 
 ## Rules
 
