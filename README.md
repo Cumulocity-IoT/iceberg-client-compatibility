@@ -88,8 +88,8 @@ to reading tables that are updated with delete files. What each column means is 
 [^27]: Trino 484, Login: needs the `s3-region` workaround: Without it the catalog does not load and the server does not start: SdkClientException: Unable to load region from any of the providers in the chain DefaultAwsRegionProviderChain.
 [^28]: Trino 484, S3, CDC tables, Schema evolution, Incremental read, Decimal, Timestamps, Nesting, Large values, Identifiers: needs the `case-insensitive-names` workaround: Without it: TABLE_NOT_FOUND: line 1:15: Table 'lake.cdc_measurement.c8y_temperature' does not exist
 [^29]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set
-[^30]: Dremio Enterprise 26.1.12, Login: Tested through Cumulocity DataHub, whose provisioning gives the Dremio source an OAuth2 client credential for the catalog.
-[^31]: Dremio Enterprise 26.1.12, S3: Tested through Cumulocity DataHub, whose provisioning sets the Dremio source to use vended storage credentials.
+[^30]: Dremio Enterprise 26.1.12, Login: The Dremio source Cumulocity provisions logs in to the catalog with an OAuth2 client credential.
+[^31]: Dremio Enterprise 26.1.12, S3: The Dremio source Cumulocity provisions reads the storage with vended credentials.
 [^32]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
 [^33]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
 [^34]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
