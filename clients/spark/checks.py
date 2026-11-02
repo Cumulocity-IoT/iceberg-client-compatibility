@@ -179,6 +179,23 @@ def main(plan_path, out_path):
                     f"got {run[0]!r} and {baseline[0]!r}."}
         return {"status": "ok"}
 
+    def incremental_read():
+        posted = datetime.fromisoformat(fx["posted"]).timestamp() * 1000
+        snapshots = spark.sql(f"SELECT snapshot_id, unix_millis(committed_at), operation FROM {fixture}.snapshots "
+                              "ORDER BY committed_at").collect()
+        before = [r[0] for r in snapshots if r[1] < posted]
+        after = [r[0] for r in snapshots if r[1] >= posted and r[2] == "append"]
+        if not before or not after:
+            return {"status": "inconclusive", "note": "The fixture table has no snapshot before fixture.posted or no append after it."}
+        start, end = before[-1], after[0]
+        df = (spark.read.format("iceberg").option("start-snapshot-id", str(start)).option("end-snapshot-id", str(end))
+              .load(f"c8y.{fx['table']['namespace']}.{fx['table']['table']}"))
+        run_ids = [r[0] for r in df.select("runId").collect()]
+        d = {"from": str(start), "to": str(end), "rows": len(run_ids)}
+        if run_ids != [fx["run_id"]]:
+            return {"status": "fail", "data": d, "note": f"Expected the one row with runId {fx['run_id']}, got {len(run_ids)} rows with runIds {run_ids[:5]}."}
+        return {"status": "ok", "data": d}
+
     def views():
         v = plan["view"]
         sql = "SELECT count(*) FROM {} WHERE " + f"{device} AND {in_window}"
@@ -202,6 +219,7 @@ def main(plan_path, out_path):
         ("nesting", nesting),
         ("large-values", large_values),
         ("schema-evolution", schema_evolution),
+        ("incremental-read", incremental_read),
     ]:
         try:
             checks[check_id] = check()

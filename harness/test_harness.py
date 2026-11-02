@@ -49,6 +49,15 @@ class RenderTest(unittest.TestCase):
         self.assertIn("[^1]: PyIceberg 0.12.0, Latest tables: raises on equality deletes", lines)
         self.assertIn("[^2]: Apache DataFusion 53.1.0, Login: needs the `token-refresh` workaround", lines)
 
+    def test_cells_with_the_same_workaround_share_a_footnote(self):
+        checks = {"catalog-login": {"status": "warn", "workaround": "tls", "note": "first"},
+                  "latest-tables": {"status": "warn", "workaround": "tls", "note": "second"},
+                  "views": {"status": "warn", "workaround": "s3-region"}}
+        table = render(COLUMNS, CLIENTS, [{"client": "pyiceberg", "version": "1.0", "date": "2026-11-02", "checks": checks}])
+        self.assertIn("| ⚠️[^1] | ⚠️[^1] | ⚠️[^2] |", table)
+        self.assertIn("[^1]: PyIceberg 1.0, Login, Latest tables: needs the `tls` workaround: first", table)
+        self.assertIn("[^2]: PyIceberg 1.0, Views: needs the `s3-region` workaround", table)
+
     def test_unknown_status_is_rejected(self):
         with self.assertRaises(ValueError):
             render(COLUMNS, CLIENTS, [result("pyiceberg", "0.12.0", "2026-11-09", views={"status": "maybe"})])

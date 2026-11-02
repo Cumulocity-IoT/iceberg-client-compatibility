@@ -17,7 +17,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+import org.apache.iceberg.DataOperations;
+import org.apache.iceberg.FileScanTask;
 import org.apache.iceberg.IcebergBuild;
+import org.apache.iceberg.IncrementalAppendScan;
+import org.apache.iceberg.Snapshot;
 import org.apache.iceberg.Table;
 import org.apache.iceberg.catalog.Namespace;
 import org.apache.iceberg.catalog.TableIdentifier;
@@ -25,6 +29,7 @@ import org.apache.iceberg.data.IcebergGenerics;
 import org.apache.iceberg.data.Record;
 import org.apache.iceberg.expressions.Expression;
 import org.apache.iceberg.expressions.Expressions;
+import org.apache.iceberg.formats.FormatModelRegistry;
 import org.apache.iceberg.io.CloseableIterable;
 import org.apache.iceberg.rest.RESTCatalog;
 import org.apache.iceberg.view.SQLViewRepresentation;
@@ -70,10 +75,11 @@ public class Checks {
       checks.put("nesting", run(catalog, onRunRow(Checks::nesting), true));
       checks.put("large-values", run(catalog, onRunRow(Checks::largeValues), true));
       checks.put("schema-evolution", run(catalog, onRunRow(Checks::schemaEvolution), true));
+      checks.put("incremental-read", run(catalog, Checks::incrementalRead, true));
     } catch (Exception e) {
       checks.put("catalog-login", fail(e));
       for (String id : List.of("s3", "cdc-tables", "latest-tables", "identifiers", "views", "decimal", "timestamps",
-          "nesting", "large-values", "schema-evolution")) {
+          "nesting", "large-values", "schema-evolution", "incremental-read")) {
         checks.put(id, result("inconclusive", "The catalog login failed.", null));
       }
     } finally {
@@ -348,6 +354,49 @@ public class Checks {
       wrong.add("baseline row: expected NULL, got " + baseline.getField(column));
     }
     return wrong.isEmpty() ? result("ok", null, null) : result("fail", String.join("; ", wrong) + ".", null);
+  }
+
+  /** The appends from the last snapshot before fixture.posted (exclusive) to the first append after it. */
+  static Map<String, Object> incrementalRead(RESTCatalog catalog) throws IOException {
+    Table table = catalog.loadTable(id("fixture/table", "table"));
+    long posted = OffsetDateTime.parse(plan.at("/fixture/posted").asText()).toInstant().toEpochMilli();
+    Snapshot from = null;
+    Snapshot to = null;
+    for (Snapshot s : table.snapshots()) {
+      if (s.timestampMillis() < posted && (from == null || s.timestampMillis() > from.timestampMillis())) {
+        from = s;
+      } else if (s.timestampMillis() >= posted && DataOperations.APPEND.equals(s.operation())
+          && (to == null || s.timestampMillis() < to.timestampMillis())) {
+        to = s;
+      }
+    }
+    if (from == null || to == null) {
+      return result("inconclusive", "The fixture table has no snapshot before fixture.posted or no append after it.",
+          null);
+    }
+    IncrementalAppendScan scan = table.newIncrementalAppendScan()
+        .fromSnapshotExclusive(from.snapshotId()).toSnapshot(to.snapshotId()).select("runId");
+    // IcebergGenerics reads only a TableScan, so each planned task is read as generic records of its file format.
+    List<Object> runIds = new ArrayList<>();
+    try (CloseableIterable<FileScanTask> tasks = scan.planFiles()) {
+      for (FileScanTask task : tasks) {
+        try (CloseableIterable<Record> records = FormatModelRegistry.<Record, Object>readBuilder(task.file().format(),
+                Record.class, table.io().newInputFile(task.file().location()))
+            .project(scan.schema()).split(task.start(), task.length()).build()) {
+          for (Record record : records) {
+            runIds.add(record.getField("runId"));
+          }
+        }
+      }
+    }
+    Map<String, Object> data = new LinkedHashMap<>();
+    data.put("from", String.valueOf(from.snapshotId()));
+    data.put("to", String.valueOf(to.snapshotId()));
+    data.put("rows", runIds.size());
+    return runIds.equals(List.of(runId()))
+        ? result("ok", null, data)
+        : result("fail", "Expected the one row with runId " + runId() + ", got " + runIds.size() + " rows with runIds "
+            + runIds.subList(0, Math.min(5, runIds.size())) + ".", data);
   }
 
   static Map<String, Object> views(RESTCatalog catalog) {

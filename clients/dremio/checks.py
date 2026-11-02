@@ -21,6 +21,10 @@ LOGIN = ("Tested through Cumulocity DataHub, whose provisioning gives the Dremio
          "credential for the catalog.")
 VENDED = "Tested through Cumulocity DataHub, whose provisioning sets the Dremio source to use vended storage credentials."
 
+INCREMENTAL = ("Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause "
+               "or table function for the rows appended between two snapshots "
+               "(docs.dremio.com/current/reference/sql/commands/SELECT-statements).")
+
 # shortcut: a tenant user may read neither sys.version nor any other Dremio system table, so the Dremio Enterprise
 # release comes from the DataHub version that bundles it (dremio-ee-utils.version in datahub-console's
 # gradle.properties for that build); add a line when DataHub upgrades, until DataHub exposes Dremio's version.
@@ -200,6 +204,7 @@ def main(plan_path, out_path):
         "nesting": run(nesting, plan),
         "large-values": run(large_values, plan),
         "schema-evolution": run(schema_evolution, plan),
+        "incremental-read": {"status": "na", "note": INCREMENTAL},
     }
     request = urllib.request.Request(BASE.removesuffix("/dremio/api/v3") + "/version",
                                      headers={"Authorization": AUTH, "Accept": "application/json"})

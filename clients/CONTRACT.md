@@ -39,7 +39,8 @@ runtime's own pin to its latest release.
 ## Rules
 
 * **Read only.** A client never writes to Cumulocity, the catalog or the lake, by any route, DataHub included: SQL
-  it sends is `SELECT` only. The catalog principal is read-only anyway. Test data reaches the lake only through the
+  it sends to the lake is `SELECT` only; session-local setup (a secret, an attached catalog or database
+  object in the client's own session) writes nothing to the lake and is fine. The catalog principal is read-only anyway. Test data reaches the lake only through the
   harness, which posts it to Cumulocity like a device. Clients keep their default telemetry: Iceberg Java's
   scan-metrics reports go to the catalog's metrics endpoint, which Polaris 1.8 only logs (reporter `default`),
   so nothing reaches the catalog's database. If the catalog ever switches to a persisting reporter, turn the
@@ -65,7 +66,7 @@ clients.
 
 | Column id | Check | `ok` when |
 |---|---|---|
-| `catalog-login` | OAuth2 client credentials with the explicit token endpoint and scope; list namespaces | the plan's namespaces are listed |
+| `catalog-login` | OAuth2 client credentials with the explicit token endpoint and scope; list namespaces (a client that can list only tables lists the tables of the plan's table namespaces) | the plan's namespaces are listed (for a table-listing client: those that hold tables) |
 | `s3` | Read rows of the measurement table, with vended credentials only | at least one row comes back |
 | `cdc-tables` | On the measurement table: `total`, `device` (`source = S`), `not_device` (`NOT (source = S)`), `before` (`time < boundary`), `after` (`time >= boundary`) | `device + not_device = total`, `before + after = total`, and `device`, `before`, `after` are all above 0 |
 | `latest-tables` | On the latest table: `rows` = count of rows, `ids` = count of distinct `id` | `rows = ids` and both above 0 |

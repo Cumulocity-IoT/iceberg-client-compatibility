@@ -68,6 +68,7 @@ async fn main() -> Res<()> {
                 checks.insert(id, f.clone());
             }
             checks.insert("views", views_na());
+            checks.insert("incremental-read", incremental_na());
             return write(out_path, checks);
         }
     };
@@ -148,6 +149,7 @@ async fn main() -> Res<()> {
     checks.insert("timestamps", or_fail(timestamps(&ctx, &fixture, run, &x["timestamp"]).await));
 
     checks.insert("views", views_na());
+    checks.insert("incremental-read", incremental_na());
     write(out_path, checks)
 }
 
@@ -355,6 +357,11 @@ const SESSION_TIME_ZONE: &str = "Asia/Kolkata";
 
 fn views_na() -> Value {
     json!({"status": "na", "note": "iceberg-rust, which iceberg-datafusion is built on, has no Iceberg view support (apache/iceberg-rust#55)"})
+}
+
+fn incremental_na() -> Value {
+    json!({"status": "na", "note": "iceberg-rust, which iceberg-datafusion is built on, scans one snapshot only (TableScanBuilder::snapshot_id) \
+        and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)"})
 }
 
 fn rows(batches: &[RecordBatch]) -> usize {

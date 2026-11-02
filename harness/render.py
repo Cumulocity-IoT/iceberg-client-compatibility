@@ -66,16 +66,28 @@ def render(columns, clients, results):
                 base = client.get("built_on")
                 cells.append(clients[base]["name"] if base in clients else (base or ""))
             cells.append(tested)
+            # The cells that need the same workaround share one footnote, with the note of the first of them.
+            groups = {}
+            for c in used:
+                check = r["checks"].get(c["id"], {})
+                if check.get("workaround"):
+                    groups.setdefault(check["workaround"], {"titles": [], "note": check.get("note")})["titles"].append(c["title"])
+            refs = {}
             for c in used:
                 check = r["checks"].get(c["id"])
                 if check is None:
                     cells.append("")
                     continue
                 cell = ICONS[check["status"]]
-                note = check.get("note")
-                if check.get("workaround"):
-                    note = f"needs the `{check['workaround']}` workaround" + (f": {note}" if note else "")
-                if note:
+                workaround, note = check.get("workaround"), check.get("note")
+                if workaround:
+                    if workaround not in refs:
+                        group = groups[workaround]
+                        notes.append(f"{client['name']} {r['version']}, {', '.join(group['titles'])}: needs the "
+                                     f"`{workaround}` workaround" + (f": {group['note']}" if group["note"] else ""))
+                        refs[workaround] = len(notes)
+                    cell += f"[^{refs[workaround]}]"
+                elif note:
                     notes.append(f"{client['name']} {r['version']}, {c['title']}: {note}")
                     cell += f"[^{len(notes)}]"
                 cells.append(cell)

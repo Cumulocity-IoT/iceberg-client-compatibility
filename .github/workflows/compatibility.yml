@@ -40,6 +40,9 @@ jobs:
       C8Y_PASSWORD: ${{ secrets.C8Y_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+      - name: Free disk space for the engine images
+        # StarRocks and Doris unpack to about 10 GB; the runner's preinstalled SDKs we do not use take more than that.
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL && df -h /
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -47,6 +50,23 @@ jobs:
             21
             25
       - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            clients/*/*.py
+            harness/*.py
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: clients/iceberg-go/go.mod
+          cache-dependency-path: clients/iceberg-go/go.sum
+      - name: Cache the engine downloads
+        # Keyed on the pins alone, without restore keys, so a raised version replaces the old download.
+        uses: actions/cache@v4
+        with:
+          path: |
+            clients/trino/target/trino-server-core-*
+            clients/clickhouse/target/clickhouse-*
+          key: downloads-${{ hashFiles('clients/trino/run.sh', 'clients/clickhouse/run.sh') }}
       - uses: actions/cache@v4
         with:
           path: |

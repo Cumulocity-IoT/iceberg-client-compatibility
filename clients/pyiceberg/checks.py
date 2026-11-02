@@ -184,6 +184,24 @@ def schema_evolution(catalog, plan):
     return {"status": "ok"}
 
 
+def incremental_read(catalog, plan):
+    f = plan["fixture"]
+    table = catalog.load_table((f["table"]["namespace"], f["table"]["table"]))
+    posted = datetime.fromisoformat(f["posted"]).timestamp() * 1000
+    snapshots = sorted(table.snapshots(), key=lambda s: s.timestamp_ms)
+    before = [s for s in snapshots if s.timestamp_ms < posted]
+    after = [s for s in snapshots if s.timestamp_ms >= posted and s.summary and s.summary.operation.value == "append"]
+    if not before or not after:
+        return {"status": "inconclusive", "note": "The fixture table has no snapshot before fixture.posted or no append after it."}
+    start, end = before[-1].snapshot_id, after[0].snapshot_id
+    scan = table.incremental_append_scan(from_snapshot_id_exclusive=start, to_snapshot_id_inclusive=end, selected_fields=("runId",))
+    run_ids = scan.to_arrow()["runId"].to_pylist()
+    data = {"from": str(start), "to": str(end), "rows": len(run_ids)}
+    if run_ids != [f["run_id"]]:
+        return {"status": "fail", "data": data, "note": f"Expected the one row with runId {f['run_id']}, got {len(run_ids)} rows with runIds {run_ids[:5]}."}
+    return {"status": "ok", "data": data}
+
+
 def views(catalog, plan):
     v = plan["view"]
     catalog.load_view((v["namespace"], v["view"]))
@@ -192,7 +210,8 @@ def views(catalog, plan):
 
 CHECKS = {"catalog-login": catalog_login, "s3": s3, "cdc-tables": cdc_tables, "latest-tables": latest_tables,
           "identifiers": identifiers, "views": views, "decimal": decimal, "timestamps": timestamps,
-          "nesting": nesting, "large-values": large_values, "schema-evolution": schema_evolution}
+          "nesting": nesting, "large-values": large_values, "schema-evolution": schema_evolution,
+          "incremental-read": incremental_read}
 
 
 def failure(e):
