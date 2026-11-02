@@ -44,6 +44,9 @@ def published(release):
     if "github" in release:
         data = json.loads(fetch(f"https://api.github.com/repos/{release['github']}/releases?per_page=100"))
         return [r["tag_name"] for r in data if not r["draft"] and not r["prerelease"]]
+    if "dockerhub" in release:
+        url = f"https://hub.docker.com/v2/repositories/{release['dockerhub']}/tags?page_size=100&ordering=last_updated"
+        return [t["name"] for t in json.loads(fetch(url))["results"]]  # the 100 most recently pushed tags
     raise ValueError(f"unknown release source {release}")
 
 
