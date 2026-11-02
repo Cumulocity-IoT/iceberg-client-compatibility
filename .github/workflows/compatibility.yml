@@ -56,6 +56,7 @@ jobs:
             clients/*/*.py
             harness/*.py
       - uses: actions/setup-go@v5
+        if: hashFiles('clients/iceberg-go/go.mod') != ''
         with:
           go-version-file: clients/iceberg-go/go.mod
           cache-dependency-path: clients/iceberg-go/go.sum
