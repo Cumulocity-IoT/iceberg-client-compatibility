@@ -31,7 +31,7 @@ to reading tables that are updated with delete files. What each column means is 
 
 | Client | Version | Built on | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Cumulocity DataHub (Dremio) | 14.0.760 | Iceberg Java | 2026-11-02 | ✅[^6] | ✅[^7] | ✅ | ✅ | ✅ | ✅[^8] | ✅[^9] | ✅ | ✅ | ✅ | ✅ |
+| Dremio Enterprise | 26.1.12 | Iceberg Java | 2026-11-02 | ✅[^6] | ✅[^7] | ✅ | ✅ | ✅ | ✅[^8] | ✅[^9] | ✅ | ✅ | ✅ | ✅ |
 
 ### What the columns mean
 
@@ -54,10 +54,10 @@ to reading tables that are updated with delete files. What each column means is 
 [^3]: PyIceberg 0.12.0, Views: PyIceberg loads a view's metadata and SQL text but has no engine to run it (py.iceberg.apache.org/api/#load-a-view).
 [^4]: Apache DataFusion 0.10.1, Login: needs the `tls` workaround: iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)
 [^5]: Apache DataFusion 0.10.1, Views: iceberg-rust, which iceberg-datafusion is built on, has no Iceberg view support (apache/iceberg-rust#55)
-[^6]: Cumulocity DataHub (Dremio) 14.0.760, Login: DataHub logs in to the catalog with an OAuth2 client credential that provisioning issues for each tenant.
-[^7]: Cumulocity DataHub (Dremio) 14.0.760, S3: Provisioning sets DataHub's source to use vended storage credentials.
-[^8]: Cumulocity DataHub (Dremio) 14.0.760, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
-[^9]: Cumulocity DataHub (Dremio) 14.0.760, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
+[^6]: Dremio Enterprise 26.1.12, Login: Tested through Cumulocity DataHub, whose provisioning gives the Dremio source an OAuth2 client credential for the catalog.
+[^7]: Dremio Enterprise 26.1.12, S3: Tested through Cumulocity DataHub, whose provisioning sets the Dremio source to use vended storage credentials.
+[^8]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
+[^9]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
 <!-- END GENERATED TABLE -->
 
 ✅ works · ⚠️ works with a workaround, see the footnote · ❌ fails · ➖ not supported by the client ·

@@ -1,15 +1,15 @@
 {
   "client": "dremio",
-  "version": "14.0.760",
-  "build": "DataHub REST API",
+  "version": "26.1.12",
+  "build": "through Cumulocity DataHub 14.0.760 REST API",
   "checks": {
     "catalog-login": {
       "status": "ok",
-      "note": "DataHub logs in to the catalog with an OAuth2 client credential that provisioning issues for each tenant."
+      "note": "Tested through Cumulocity DataHub, whose provisioning gives the Dremio source an OAuth2 client credential for the catalog."
     },
     "s3": {
       "status": "ok",
-      "note": "Provisioning sets DataHub's source to use vended storage credentials."
+      "note": "Tested through Cumulocity DataHub, whose provisioning sets the Dremio source to use vended storage credentials."
     },
     "cdc-tables": {
       "status": "ok",
@@ -93,7 +93,7 @@
     "schema-evolution": {
       "status": "ok",
       "data": {
-        "run": "run-20261102T154050Z",
+        "run": "run-20261102T163200Z",
         "baseline": null
       }
     }

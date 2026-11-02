@@ -15,9 +15,16 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from example import AUTH, BASE, TENANT, query, query_typed  # noqa: E402
 from harness.redact import redact  # noqa: E402
 
-# DataHub reads the catalog inside the platform; these cells state how provisioning configures that source.
-LOGIN = "DataHub logs in to the catalog with an OAuth2 client credential that provisioning issues for each tenant."
-VENDED = "Provisioning sets DataHub's source to use vended storage credentials."
+# Tested through Cumulocity DataHub, which runs Dremio Enterprise and reads the catalog inside the platform;
+# these cells state how DataHub's provisioning configures that Dremio source.
+LOGIN = ("Tested through Cumulocity DataHub, whose provisioning gives the Dremio source an OAuth2 client "
+         "credential for the catalog.")
+VENDED = "Tested through Cumulocity DataHub, whose provisioning sets the Dremio source to use vended storage credentials."
+
+# shortcut: a tenant user may read neither sys.version nor any other Dremio system table, so the Dremio Enterprise
+# release comes from the DataHub version that bundles it (dremio-ee-utils.version in datahub-console's
+# gradle.properties for that build); add a line when DataHub upgrades, until DataHub exposes Dremio's version.
+DREMIO_FOR_DATAHUB = {"14.0.760": "26.1.12"}
 
 
 def ts(iso):
@@ -194,12 +201,13 @@ def main(plan_path, out_path):
         "large-values": run(large_values, plan),
         "schema-evolution": run(schema_evolution, plan),
     }
-    # The row is DataHub, so its version is DataHub's; a tenant user may not read Dremio's sys.version.
     request = urllib.request.Request(BASE.removesuffix("/dremio/api/v3") + "/version",
                                      headers={"Authorization": AUTH, "Accept": "application/json"})
     with urllib.request.urlopen(request, timeout=60) as response:
-        version = json.load(response)["versionId"]
-    out = {"client": "dremio", "version": version, "build": "DataHub REST API", "checks": checks}
+        datahub = json.load(response)["versionId"]
+    version = DREMIO_FOR_DATAHUB.get(datahub, f"unknown (DataHub {datahub})")
+    out = {"client": "dremio", "version": version, "build": f"through Cumulocity DataHub {datahub} REST API",
+           "checks": checks}
     Path(out_path).write_text(json.dumps(out, indent=2) + "\n")
     for name, result in checks.items():
         print(f"{name}: {result['status']}")
