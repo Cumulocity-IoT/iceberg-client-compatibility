@@ -67,7 +67,10 @@ get appends, so no client needs delete support for them.
 | `large-values` | `expect.large.column` of the run's row, and the binary `data` of the row in `fixture.trash` with `id = fixture.event` whose `path` ends with `expect.binned.path_suffix` | the string has `chars` characters and `bytes` UTF-8 bytes, all of them `char`; the binary decodes as UTF-8 to `expect.binned.data` |
 | `schema-evolution` | `expect.evolution.column` on the run's row and on the row with `runId = expect.evolution.baseline_run` | the run's row holds `expect.evolution.run`, the baseline row NULL |
 
-For a mismatch, put the expected and the actual value in `note`, shortened to what shows the difference.
+For a mismatch, put the expected and the actual value in `note`, shortened to what shows the difference. The check
+before the clients has already confirmed that the run's rows are in the lake, so a client that does not find them
+reports `fail`, not `inconclusive`. Check the type a value comes back as, not only its text: a decimal or a
+timestamp that arrives as a string or a float does not pass.
 
 Status values:
 

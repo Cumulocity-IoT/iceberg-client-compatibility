@@ -27,15 +27,30 @@
       "note": "PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210)."
     },
     "identifiers": {
-      "status": "inconclusive",
-      "data": {
-        "rows": 0
-      },
-      "note": "The table loads with the column under its exact name but has no snapshot, so there are no rows to read."
+      "status": "ok"
     },
     "views": {
       "status": "na",
       "note": "PyIceberg loads a view's metadata and SQL text but has no engine to run it (py.iceberg.apache.org/api/#load-a-view)."
+    },
+    "decimal": {
+      "status": "ok"
+    },
+    "timestamps": {
+      "status": "ok"
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
     }
   },
   "date": "2026-11-02"

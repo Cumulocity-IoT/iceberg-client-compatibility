@@ -5,7 +5,11 @@
 """Runs the contract checks (clients/CONTRACT.md) with PyIceberg: checks.py <plan.json> <out.json>."""
 
 import json
+import os
 import sys
+import time
+from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -80,20 +84,104 @@ def latest_tables(catalog, plan):
     return {"status": "ok", "data": data}
 
 
+class Fail(Exception):
+    """A check result of fail; the message is the note."""
+
+
+def run_row(catalog, ref, run_id, *fields):
+    """The row of ref with runId = run_id, projected to fields (dotted names select nested fields)."""
+    table = catalog.load_table((ref["namespace"], ref["table"]))
+    rows = table.scan(row_filter=EqualTo("runId", run_id), selected_fields=fields).to_arrow().to_pylist()
+    if not rows:
+        raise Fail(f"{ref['namespace']}.{ref['table']} has no row with runId = {run_id}.")
+    return rows[0]
+
+
+def exact(value):
+    return value if isinstance(value, Decimal) else Decimal(value)  # Decimal(float) is exact
+
+
 def identifiers(catalog, plan):
-    e = plan["escaped"]
-    table = catalog.load_table((e["namespace"], e["table"]))
-    if e["column"] not in [f.name for f in table.schema().fields]:
-        return {"status": "fail", "note": f"The schema has no column named {e['column']}."}
-    result = table.scan(selected_fields=(e["column"],)).to_arrow()
-    data = {"rows": result.num_rows}
-    if result.column_names != [e["column"]]:
-        return {"status": "fail", "data": data, "note": f"The scan returns the columns {result.column_names}."}
-    if result.num_rows == 0:
-        if table.current_snapshot() is None:
-            return {"status": "inconclusive", "data": data, "note": "The table loads with the column under its exact name but has no snapshot, so there are no rows to read."}
-        return {"status": "fail", "data": data, "note": "The scan returned no rows although the table has a snapshot."}
+    f = plan["fixture"]
+    run_row(catalog, plan["escaped"], f["run_id"], plan["escaped"]["column"])
+    names = f["expect"]["names"]
+    schema = catalog.load_table((f["table"]["namespace"], f["table"]["table"])).schema()
+    missing = [n for n in names if n not in [field.name for field in schema.fields]]
+    if missing:
+        return {"status": "fail", "note": f"The schema has no column named {', '.join(missing)}."}
+    row = run_row(catalog, f["table"], f["run_id"], *names)
+    wrong = {n: row.get(n) for n, v in names.items() if row.get(n) != v}
+    if wrong:
+        return {"status": "fail", "note": f"Expected {({n: names[n] for n in wrong})}, got {wrong}."}
+    return {"status": "ok"}
+
+
+def decimal(catalog, plan):
+    f = plan["fixture"]
+    decimals = f["expect"]["decimals"]
+    row = run_row(catalog, f["table"], f["run_id"], *decimals)
+    wrong = {n: row[n] if row[n] is None else format(exact(row[n]), "f") for n, v in decimals.items() if row[n] is None or exact(row[n]) != Decimal(v)}
+    if wrong:
+        return {"status": "fail", "note": f"Expected {({n: decimals[n] for n in wrong})}, got {wrong}."}
+    return {"status": "ok"}
+
+
+def timestamps(catalog, plan):
+    os.environ["TZ"] = "Asia/Kolkata"
+    time.tzset()
+    f = plan["fixture"]
+    t = f["expect"]["timestamp"]
+    actual = run_row(catalog, f["table"], f["run_id"], t["column"])[t["column"]]
+    expected = datetime.fromisoformat(ts(t["value"]))
+    if not isinstance(actual, datetime) or actual.tzinfo is None or actual != expected:
+        return {"status": "fail", "note": f"Expected the instant {t['value']}, got {actual!r}."}
+    return {"status": "ok"}
+
+
+def nesting(catalog, plan):
+    f = plan["fixture"]
+    n, lst = f["expect"]["nested"], f["expect"]["list"]
+    row = run_row(catalog, f["table"], f["run_id"], ".".join([n["column"], *n["path"]]), lst["column"])
+    leaf = row[n["column"]]
+    for key in n["path"]:
+        leaf = leaf.get(key) if isinstance(leaf, dict) else None
+    if leaf != n["value"]:
+        return {"status": "fail", "note": f"Expected the leaf {n['value']!r}, got {leaf!r}."}
+    actual = row[lst["column"]] or []
+    same = len(actual) == len(lst["value"]) and all(
+        a["position"] is not None and exact(a["position"]) == Decimal(e["position"]) and a["label"] == e["label"]
+        for a, e in zip(actual, lst["value"]))
+    if not same:
+        got = [{k: str(v) for k, v in a.items()} for a in actual]
+        return {"status": "fail", "note": f"Expected the list {lst['value']}, got {got}."}
+    return {"status": "ok"}
+
+
+def large_values(catalog, plan):
+    f = plan["fixture"]
+    large, binned = f["expect"]["large"], f["expect"]["binned"]
+    text = run_row(catalog, f["table"], f["run_id"], large["column"])[large["column"]] or ""
+    data = {"chars": len(text), "bytes": len(text.encode("utf-8"))}
+    if data != {"chars": large["chars"], "bytes": large["bytes"]} or set(text) != {large["char"]}:
+        return {"status": "fail", "data": data, "note": f"Expected {large['chars']} chars and {large['bytes']} bytes of {large['char']!r}, got {data['chars']} chars, {data['bytes']} bytes of {sorted(set(text))[:5]}."}
+    trash = catalog.load_table((f["trash"]["namespace"], f["trash"]["table"]))
+    rows = trash.scan(row_filter=EqualTo("id", f["event"]), selected_fields=("path", "data")).to_arrow().to_pylist()
+    blobs = [r["data"] for r in rows if (r["path"] or "").endswith(binned["path_suffix"])]
+    if not blobs:
+        return {"status": "fail", "data": data, "note": f"The trash table has no row with id = {f['event']} and a path ending in {binned['path_suffix']}."}
+    if not isinstance(blobs[0], bytes) or blobs[0].decode("utf-8") != binned["data"]:
+        return {"status": "fail", "data": data, "note": f"Expected the binned data {binned['data']!r}, got {blobs[0][:80]!r}."}
     return {"status": "ok", "data": data}
+
+
+def schema_evolution(catalog, plan):
+    f = plan["fixture"]
+    e = f["expect"]["evolution"]
+    run = run_row(catalog, f["table"], f["run_id"], e["column"])[e["column"]]
+    baseline = run_row(catalog, f["table"], e["baseline_run"], e["column"])[e["column"]]
+    if run != e["run"] or baseline is not None:
+        return {"status": "fail", "note": f"Expected {e['run']!r} on the run's row and NULL on the baseline row, got {run!r} and {baseline!r}."}
+    return {"status": "ok"}
 
 
 def views(catalog, plan):
@@ -103,10 +191,13 @@ def views(catalog, plan):
 
 
 CHECKS = {"catalog-login": catalog_login, "s3": s3, "cdc-tables": cdc_tables, "latest-tables": latest_tables,
-          "identifiers": identifiers, "views": views}
+          "identifiers": identifiers, "views": views, "decimal": decimal, "timestamps": timestamps,
+          "nesting": nesting, "large-values": large_values, "schema-evolution": schema_evolution}
 
 
 def failure(e):
+    if isinstance(e, Fail):
+        return {"status": "fail", "note": redact(str(e))[:300]}
     first_line = (str(e).strip().splitlines() or [""])[0]
     return {"status": "fail", "note": redact(f"{type(e).__name__}: {first_line}")[:300]}
 

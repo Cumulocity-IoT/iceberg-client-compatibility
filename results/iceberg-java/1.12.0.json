@@ -28,20 +28,43 @@
     "latest-tables": {
       "status": "ok",
       "data": {
-        "rows": 5001,
-        "ids": 5001
+        "ids": 5002,
+        "rows": 5002
       }
     },
     "identifiers": {
-      "status": "inconclusive",
-      "note": "The escaped table has no snapshot, so no rows could come back.",
-      "data": {
-        "rows": 0
-      }
+      "status": "ok"
     },
     "views": {
       "status": "na",
       "note": "Iceberg Java loads the view metadata (dialects DremioSQL, spark, trino, starrocks) but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec)."
+    },
+    "decimal": {
+      "status": "ok",
+      "data": {
+        "decimalValue": "12345678901234567000.000000000",
+        "fractionDecimal": "0.123456789",
+        "tinyDecimal": "0.000000001"
+      }
+    },
+    "timestamps": {
+      "status": "ok",
+      "data": {
+        "stampMillis": "2026-11-02T10:11:12.345Z"
+      }
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
     }
   },
   "date": "2026-11-02"

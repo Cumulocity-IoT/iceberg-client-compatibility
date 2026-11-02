@@ -4,12 +4,12 @@
   "build": "DataHub REST API",
   "checks": {
     "catalog-login": {
-      "status": "na",
-      "note": "DataHub connects to the catalog inside the platform, not through the public endpoint"
+      "status": "ok",
+      "note": "DataHub logs in to the catalog with an OAuth2 client credential that provisioning issues for each tenant."
     },
     "s3": {
-      "status": "na",
-      "note": "DataHub connects to the catalog inside the platform, not through the public endpoint"
+      "status": "ok",
+      "note": "Provisioning sets DataHub's source to use vended storage credentials."
     },
     "cdc-tables": {
       "status": "ok",
@@ -24,23 +24,77 @@
     "latest-tables": {
       "status": "ok",
       "data": {
-        "rows": 5001,
-        "ids": 5001
+        "rows": 5002,
+        "ids": 5002
       }
     },
     "identifiers": {
-      "status": "inconclusive",
+      "status": "ok",
       "data": {
-        "rows": 0,
-        "column_found": true
-      },
-      "note": "The escaped table has no snapshot yet, so it holds no rows to read."
+        "escaped_rows": 1,
+        "names": {
+          "camelCaseName": "camel",
+          "dash-name": "dash",
+          "dot_x002Ename": "dot",
+          "value": "reserved word value",
+          "select": "reserved word select"
+        }
+      }
     },
     "views": {
       "status": "ok",
       "data": {
         "view": 34560,
         "table": 34560
+      }
+    },
+    "decimal": {
+      "status": "ok",
+      "data": {
+        "decimalValue": "12345678901234567000.000000000",
+        "fractionDecimal": "0.123456789",
+        "tinyDecimal": "1E-9"
+      },
+      "note": "The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them."
+    },
+    "timestamps": {
+      "status": "ok",
+      "data": {
+        "value": "2026-11-02 10:11:12.345",
+        "type": "TIMESTAMP"
+      },
+      "note": "The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC."
+    },
+    "nesting": {
+      "status": "ok",
+      "data": {
+        "leaf": "deepest",
+        "list": [
+          {
+            "position": "1.000000000",
+            "label": "first"
+          },
+          {
+            "position": "2.000000000",
+            "label": "second"
+          }
+        ]
+      }
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768,
+        "only_char": true,
+        "binned": "\"deepest\""
+      }
+    },
+    "schema-evolution": {
+      "status": "ok",
+      "data": {
+        "run": "run-20261102T153346Z",
+        "baseline": null
       }
     }
   },

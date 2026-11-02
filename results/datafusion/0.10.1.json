@@ -19,20 +19,37 @@
       },
       "status": "ok"
     },
+    "decimal": {
+      "status": "ok"
+    },
     "identifiers": {
-      "note": "the escaped table has no snapshot in the catalog, so there are no rows to read",
-      "status": "inconclusive"
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok"
     },
     "latest-tables": {
       "data": {
-        "ids": 5001,
-        "rows": 5001
+        "ids": 5002,
+        "rows": 5002
       },
+      "status": "ok"
+    },
+    "nesting": {
       "status": "ok"
     },
     "s3": {
       "data": {
         "rows": 5
+      },
+      "status": "ok"
+    },
+    "schema-evolution": {
+      "status": "ok"
+    },
+    "timestamps": {
+      "data": {
+        "value": "2026-11-02T10:11:12.345Z"
       },
       "status": "ok"
     },

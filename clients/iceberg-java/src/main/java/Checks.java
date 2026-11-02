@@ -2,11 +2,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 import org.apache.iceberg.IcebergBuild;
 import org.apache.iceberg.Table;
@@ -28,6 +37,11 @@ public class Checks {
     Map<String, Object> run(RESTCatalog catalog) throws Exception;
   }
 
+  /** A check on the run's row of the fixture table. */
+  interface RowCheck {
+    Map<String, Object> run(RESTCatalog catalog, Table table, Record row) throws Exception;
+  }
+
   static JsonNode plan;
   static RESTCatalog regionCatalog;
 
@@ -43,11 +57,23 @@ public class Checks {
       checks.put("s3", run(catalog, Checks::s3, true));
       checks.put("cdc-tables", run(catalog, Checks::cdcTables, true));
       checks.put("latest-tables", run(catalog, Checks::latestTables, true));
-      checks.put("identifiers", run(catalog, Checks::identifiers, true));
+      checks.put("identifiers", run(catalog, onRunRow(Checks::identifiers), true));
       checks.put("views", run(catalog, Checks::views, false));
+      checks.put("decimal", run(catalog, onRunRow(Checks::decimal), true));
+      TimeZone zone = TimeZone.getDefault();
+      TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
+      try {
+        checks.put("timestamps", run(catalog, onRunRow(Checks::timestamps), true));
+      } finally {
+        TimeZone.setDefault(zone);
+      }
+      checks.put("nesting", run(catalog, onRunRow(Checks::nesting), true));
+      checks.put("large-values", run(catalog, onRunRow(Checks::largeValues), true));
+      checks.put("schema-evolution", run(catalog, onRunRow(Checks::schemaEvolution), true));
     } catch (Exception e) {
       checks.put("catalog-login", fail(e));
-      for (String id : List.of("s3", "cdc-tables", "latest-tables", "identifiers", "views")) {
+      for (String id : List.of("s3", "cdc-tables", "latest-tables", "identifiers", "views", "decimal", "timestamps",
+          "nesting", "large-values", "schema-evolution")) {
         checks.put(id, result("inconclusive", "The catalog login failed.", null));
       }
     } finally {
@@ -172,22 +198,156 @@ public class Checks {
         : result("fail", rows + " rows came back for " + ids.size() + " distinct ids.", data);
   }
 
-  /** The escaped table has no time column either; all its rows are read. */
-  static Map<String, Object> identifiers(RESTCatalog catalog) throws IOException {
-    Table table = catalog.loadTable(id("escaped", "table"));
-    String column = plan.at("/escaped/column").asText();
-    if (table.schema().findField(column) == null) { // findField is case-sensitive
-      return result("fail", "The column " + column + " is not found under its exact name.", null);
+  static Map<String, Object> identifiers(RESTCatalog catalog, Table table, Record row) throws IOException {
+    Table escaped = catalog.loadTable(id("escaped", "table"));
+    if (first(escaped, Expressions.equal(plan.at("/escaped/column").asText(), runId())) == null) {
+      return missing(escaped, "The escaped table");
     }
-    long rows = count(table, Expressions.alwaysTrue(), column);
-    Map<String, Object> data = Map.of("rows", rows);
-    if (rows == 0) {
-      // Only an empty table excuses zero rows; a table with a snapshot that reads as empty is a failure.
-      return table.currentSnapshot() == null
-          ? result("inconclusive", "The escaped table has no snapshot, so no rows could come back.", data)
-          : result("fail", "The escaped table has a snapshot, but no rows came back.", data);
+    List<String> wrong = new ArrayList<>();
+    for (Map.Entry<String, JsonNode> name : plan.at("/fixture/expect/names").properties()) {
+      if (row.struct().field(name.getKey()) == null) { // field(name) is case-sensitive
+        wrong.add(name.getKey() + " is not found under its exact name");
+      } else if (!name.getValue().asText().equals(row.getField(name.getKey()))) {
+        wrong.add(name.getKey() + ": expected " + name.getValue().asText() + ", got " + row.getField(name.getKey()));
+      }
     }
-    return result("ok", null, data);
+    return wrong.isEmpty() ? result("ok", null, null) : result("fail", String.join("; ", wrong) + ".", null);
+  }
+
+  static Map<String, Object> decimal(RESTCatalog catalog, Table table, Record row) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    List<String> wrong = new ArrayList<>();
+    for (Map.Entry<String, JsonNode> column : plan.at("/fixture/expect/decimals").properties()) {
+      Object actual = row.getField(column.getKey());
+      data.put(column.getKey(), actual instanceof BigDecimal d ? d.toPlainString() : String.valueOf(actual));
+      BigDecimal expected = new BigDecimal(column.getValue().asText());
+      if (!(actual instanceof BigDecimal d) || d.compareTo(expected) != 0) {
+        wrong.add(column.getKey() + ": expected " + expected.toPlainString() + ", got " + data.get(column.getKey()));
+      }
+    }
+    return wrong.isEmpty() ? result("ok", null, data) : result("fail", String.join("; ", wrong) + ".", data);
+  }
+
+  /** Runs with the JVM default time zone set to Asia/Kolkata. */
+  static Map<String, Object> timestamps(RESTCatalog catalog, Table table, Record row) {
+    String column = plan.at("/fixture/expect/timestamp/column").asText();
+    Instant expected = Instant.parse(plan.at("/fixture/expect/timestamp/value").asText());
+    Object actual = row.getField(column);
+    Map<String, Object> data = Map.of(column, String.valueOf(actual));
+    return actual instanceof OffsetDateTime t && t.toInstant().equals(expected)
+        ? result("ok", null, data)
+        : result("fail", column + ": expected " + expected + ", got " + actual + ".", data);
+  }
+
+  static Map<String, Object> nesting(RESTCatalog catalog, Table table, Record row) {
+    List<String> wrong = new ArrayList<>();
+    String path = plan.at("/fixture/expect/nested/column").asText();
+    Object node = row.getField(path);
+    for (JsonNode step : plan.at("/fixture/expect/nested/path")) {
+      if (!(node instanceof Record struct)) {
+        break;
+      }
+      path += "." + step.asText();
+      node = struct.getField(step.asText());
+    }
+    String leaf = plan.at("/fixture/expect/nested/value").asText();
+    if (!leaf.equals(node)) {
+      wrong.add(path + ": expected " + leaf + ", got " + node);
+    }
+
+    String column = plan.at("/fixture/expect/list/column").asText();
+    JsonNode expected = plan.at("/fixture/expect/list/value");
+    Object actual = row.getField(column);
+    if (!(actual instanceof List<?> list) || list.size() != expected.size()) {
+      wrong.add(column + ": expected " + expected.size() + " elements, got " + actual);
+    } else {
+      for (int i = 0; i < list.size(); i++) {
+        Record element = (Record) list.get(i);
+        Object position = element.getField("position");
+        Object label = element.getField("label");
+        BigDecimal want = new BigDecimal(expected.get(i).get("position").asText());
+        if (!(position instanceof BigDecimal p && p.compareTo(want) == 0)
+            || !expected.get(i).get("label").asText().equals(label)) {
+          wrong.add(column + "[" + i + "]: expected " + expected.get(i) + ", got " + element);
+        }
+      }
+    }
+    return wrong.isEmpty() ? result("ok", null, null) : result("fail", String.join("; ", wrong) + ".", null);
+  }
+
+  static Map<String, Object> largeValues(RESTCatalog catalog, Table table, Record row) throws IOException {
+    JsonNode large = plan.at("/fixture/expect/large");
+    List<String> wrong = new ArrayList<>();
+    Map<String, Object> data = new LinkedHashMap<>();
+    if (row.getField(large.get("column").asText()) instanceof String text) {
+      int chars = text.codePointCount(0, text.length());
+      int bytes = text.getBytes(StandardCharsets.UTF_8).length;
+      int c = large.get("char").asText().codePointAt(0);
+      data.put("chars", chars);
+      data.put("bytes", bytes);
+      if (chars != large.get("chars").asInt() || bytes != large.get("bytes").asInt()
+          || !text.codePoints().allMatch(cp -> cp == c)) {
+        wrong.add(large.get("column").asText() + ": expected " + large.get("chars") + " characters and "
+            + large.get("bytes") + " bytes, all " + large.get("char").asText() + ", got " + chars + " characters and "
+            + bytes + " bytes" + (text.codePoints().allMatch(cp -> cp == c) ? "" : ", not all of them that character"));
+      }
+    } else {
+      wrong.add(large.get("column").asText() + " is not a string: " + row.getField(large.get("column").asText()));
+    }
+
+    JsonNode binned = plan.at("/fixture/expect/binned");
+    Table trash = catalog.loadTable(id("fixture/trash", "table"));
+    Record rejected = null;
+    try (CloseableIterable<Record> records = IcebergGenerics.read(trash)
+        .where(Expressions.equal("id", plan.at("/fixture/event").asText())).build()) {
+      for (Record record : records) {
+        if (String.valueOf(record.getField("path")).endsWith(binned.get("path_suffix").asText())) {
+          rejected = record;
+          break;
+        }
+      }
+    }
+    if (rejected == null) {
+      if (trash.currentSnapshot() == null) {
+        return result("inconclusive", "The trash table has no snapshot, so no rows could come back.", data);
+      }
+      wrong.add("the trash table has no row for event " + plan.at("/fixture/event").asText() + " with that path");
+    } else if (rejected.getField("data") instanceof ByteBuffer bytes) {
+      String decoded;
+      try {
+        decoded = StandardCharsets.UTF_8.newDecoder().decode(bytes.duplicate()).toString();
+      } catch (CharacterCodingException e) {
+        decoded = null;
+      }
+      if (!binned.get("data").asText().equals(decoded)) {
+        wrong.add("trash data: expected " + binned.get("data").asText() + ", got "
+            + (decoded == null ? "bytes that are not valid UTF-8" : decoded));
+      }
+    } else {
+      wrong.add("trash data is not binary: " + rejected.getField("data"));
+    }
+    return wrong.isEmpty() ? result("ok", null, data) : result("fail", String.join("; ", wrong) + ".", data);
+  }
+
+  static Map<String, Object> schemaEvolution(RESTCatalog catalog, Table table, Record row) throws IOException {
+    JsonNode evolution = plan.at("/fixture/expect/evolution");
+    String column = evolution.get("column").asText();
+    if (row.struct().field(column) == null) {
+      return result("fail", "The column " + column + " is not in the fixture table.", null);
+    }
+    Record baseline = first(table, Expressions.equal("runId", evolution.get("baseline_run").asText()));
+    if (baseline == null) {
+      return result("inconclusive", "The fixture table has no row of the baseline run "
+          + evolution.get("baseline_run").asText() + ".", null);
+    }
+    List<String> wrong = new ArrayList<>();
+    if (!evolution.get("run").asText().equals(row.getField(column))) {
+      wrong.add("run row: expected " + evolution.get("run").asText() + ", got " + row.getField(column));
+    }
+    if (baseline.getField(column) != null) {
+      wrong.add("baseline row: expected NULL, got " + baseline.getField(column));
+    }
+    return wrong.isEmpty() ? result("ok", null, null) : result("fail", String.join("; ", wrong) + ".", null);
   }
 
   static Map<String, Object> views(RESTCatalog catalog) {
@@ -202,6 +362,33 @@ public class Checks {
 
   static TableIdentifier id(String key, String name) {
     return TableIdentifier.of(plan.at("/" + key + "/namespace").asText(), plan.at("/" + key + "/" + name).asText());
+  }
+
+  static String runId() {
+    return plan.at("/fixture/run_id").asText();
+  }
+
+  /** Reads the run's row of the fixture table, then runs the check on it. */
+  static Check onRunRow(RowCheck check) {
+    return catalog -> {
+      Table table = catalog.loadTable(id("fixture/table", "table"));
+      Record row = first(table, Expressions.equal("runId", runId()));
+      return row == null ? missing(table, "The fixture table") : check.run(catalog, table, row);
+    };
+  }
+
+  static Record first(Table table, Expression filter) throws IOException {
+    try (CloseableIterable<Record> records = IcebergGenerics.read(table).where(filter).build()) {
+      Iterator<Record> iterator = records.iterator();
+      return iterator.hasNext() ? iterator.next() : null;
+    }
+  }
+
+  /** Only a table without a snapshot excuses a missing row; one with a snapshot that lacks it is a failure. */
+  static Map<String, Object> missing(Table table, String what) {
+    return table.currentSnapshot() == null
+        ? result("inconclusive", what + " has no snapshot, so no rows could come back.", null)
+        : result("fail", what + " has a snapshot, but no row with runId " + runId() + " came back.", null);
   }
 
   static Expression window() {

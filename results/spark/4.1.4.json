@@ -28,13 +28,15 @@
     "latest-tables": {
       "status": "ok",
       "data": {
-        "rows": 5001,
-        "ids": 5001
+        "rows": 5002,
+        "ids": 5002
       }
     },
     "identifiers": {
-      "status": "inconclusive",
-      "note": "The escaped table has no snapshot, so no rows could come back."
+      "status": "ok",
+      "data": {
+        "columns": 5
+      }
     },
     "views": {
       "status": "ok",
@@ -42,6 +44,25 @@
         "view": 34560,
         "table": 34560
       }
+    },
+    "decimal": {
+      "status": "ok"
+    },
+    "timestamps": {
+      "status": "ok"
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
     }
   },
   "date": "2026-11-02"
