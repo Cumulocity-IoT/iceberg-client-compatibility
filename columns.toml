@@ -1,98 +1,99 @@
-# The columns of the compatibility table, in display order. A column shows only once a result
-# carries it, so the later-phase columns stay hidden until a client reports them.
+# The columns of the compatibility table, in display order. A column shows only once a result carries it,
+# so the later-phase columns stay hidden until a client reports them. `meaning` is shown to readers below the
+# table; it says what a working cell means for them, then how it is tested where that is not obvious.
 
 [[column]]
 id = "catalog-login"
 group = "Connect"
 title = "Login"
-test = "OAuth2 client credentials with an explicit token endpoint and scope; list namespaces"
+meaning = "Logs in to the catalog with the client ID and secret you issue for your tenant (OAuth2 client credentials) and lists the namespaces."
 
 [[column]]
 id = "s3"
 group = "Connect"
 title = "S3"
-test = "Read rows with vended credentials only: no storage keys, no region configured"
+meaning = "Reads data files on Amazon S3 with the short-lived storage credentials the catalog hands out, with no storage keys or region of your own."
 
 [[column]]
 id = "adls"
 group = "Connect"
 title = "ADLS"
-test = "The same against an Azure Data Lake Storage lake"
+meaning = "Reads data files on Azure Data Lake Storage with the short-lived storage credentials the catalog hands out."
 
 [[column]]
 id = "refresh"
 group = "Connect"
 title = "Refresh"
-test = "Fetch a new token and new storage credentials when they are about to expire"
+meaning = "Renews the catalog token and the storage credentials before they expire, so a long job keeps working."
 
 [[column]]
 id = "long-session"
 group = "Connect"
 title = "Long session"
-test = "Keep reading after the real token and storage credential lifetimes have passed"
+meaning = "Keeps reading after the real lifetimes of the catalog token (15 minutes) and the storage credentials (1 hour) have passed."
 
 [[column]]
 id = "cdc-tables"
 group = "Read"
 title = "CDC tables"
-test = "Filters on each data type's partition columns, including NOT and month boundaries"
+meaning = "Reads the change data capture tables (`cdc_*`), which record every change. Filters by time, by device and with NOT return counts that add up, also across a month boundary, where the data is partitioned."
 
 [[column]]
 id = "latest-tables"
 group = "Read"
 title = "Latest tables"
-test = "Exactly one row per id after upserts, which Streaming Lake Ingestion writes as equality deletes"
+meaning = "Reads the `latest_inventory` tables, which hold the current state of each device. They are updated with equality and position deletes; a client that cannot apply them cannot read these tables, or returns outdated rows."
 
 [[column]]
 id = "schema-evolution"
 group = "Read"
 title = "Schema evolution"
-test = "Columns added later read as NULL for older rows and as values for newer ones"
+meaning = "Reads columns that were added later: older rows return NULL, newer rows their value."
 
 [[column]]
 id = "freshness"
 group = "Read"
 title = "Freshness"
-test = "Minutes until a new snapshot is visible"
+meaning = "Minutes until newly ingested data is visible in the client."
 
 [[column]]
 id = "incremental-read"
 group = "Read"
 title = "Incremental read"
-test = "Incremental reads across an overwrite snapshot and a compaction"
+meaning = "Reads only what changed since the last read, across updates and compactions of the table."
 
 [[column]]
 id = "decimal"
 group = "Types"
 title = "Decimal"
-test = "decimal(38,9) values come back exactly"
+meaning = "Returns numbers, which the lake stores as `decimal(38,9)`, exactly, without rounding them through floating point."
 
 [[column]]
 id = "timestamps"
 group = "Types"
 title = "Timestamps"
-test = "timestamptz returns the same instant with its full precision, whatever the session time zone"
+meaning = "Returns timestamps as the same instant, to the millisecond, whatever the time zone of the session."
 
 [[column]]
 id = "nesting"
 group = "Types"
 title = "Nesting"
-test = "Struct fields, lists of structs, nesting 16 levels deep"
+meaning = "Reads structured values: fields of objects nested up to 16 levels deep, and lists of objects."
 
 [[column]]
 id = "large-values"
 group = "Types"
 title = "Large values"
-test = "Strings of 32,768 bytes, large binary values, wide tables"
+meaning = "Reads strings of up to 32,768 bytes, binary values, and tables with many columns."
 
 [[column]]
 id = "identifiers"
 group = "Names"
 title = "Identifiers"
-test = "camelCase, suffixed and escaped names, '-', reserved words; listed, quoted and unquoted"
+meaning = "Finds tables and columns under their exact names: camelCase, escaped special characters such as `compat_x002EEscaped`, dashes, and SQL reserved words."
 
 [[column]]
 id = "views"
 group = "Views"
 title = "Views"
-test = "The flattened views return the same rows as their base tables"
+meaning = "Runs the views in the `view_*` namespaces, which turn nested fields into plain columns, and gets the same rows as from their base tables."

@@ -7,6 +7,9 @@ The table below is generated from test runs against a Cumulocity tenant. Each ru
 does: through the tenant's Iceberg catalog, with a read-only catalog principal and storage credentials that the
 catalog vends. The tests only read; Streaming Lake Ingestion is a managed lake.
 
+Each column of the table is one thing your client has to handle to read this lake, from logging in to the catalog
+to reading tables that are updated with delete files. What each column means is listed below the table.
+
 ## Compatibility
 
 <!-- BEGIN GENERATED TABLE -->
@@ -29,6 +32,17 @@ catalog vends. The tests only read; Streaming Lake Ingestion is a managed lake.
 | Client | Version | Built on | Tested | Login | S3 | CDC tables | Latest tables | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|
 | Cumulocity DataHub (Dremio) | 14.0.760 | Iceberg Java | 2026-11-02 | ➖[^10] | ➖[^11] | ✅ | ✅ | ❔[^12] | ✅ |
+
+### What the columns mean
+
+| Column | Meaning |
+|---|---|
+| Login | Logs in to the catalog with the client ID and secret you issue for your tenant (OAuth2 client credentials) and lists the namespaces. |
+| S3 | Reads data files on Amazon S3 with the short-lived storage credentials the catalog hands out, with no storage keys or region of your own. |
+| CDC tables | Reads the change data capture tables (`cdc_*`), which record every change. Filters by time, by device and with NOT return counts that add up, also across a month boundary, where the data is partitioned. |
+| Latest tables | Reads the `latest_inventory` tables, which hold the current state of each device. They are updated with equality and position deletes; a client that cannot apply them cannot read these tables, or returns outdated rows. |
+| Identifiers | Finds tables and columns under their exact names: camelCase, escaped special characters such as `compat_x002EEscaped`, dashes, and SQL reserved words. |
+| Views | Runs the views in the `view_*` namespaces, which turn nested fields into plain columns, and gets the same rows as from their base tables. |
 
 [^1]: Iceberg Java 1.12.0, Identifiers: The escaped table has no snapshot, so no rows could come back.
 [^2]: Iceberg Java 1.12.0, Views: Iceberg Java loads the view metadata (dialects DremioSQL, spark, trino, starrocks) but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec).

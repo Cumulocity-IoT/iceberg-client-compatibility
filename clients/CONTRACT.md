@@ -20,7 +20,10 @@ Python, Maven for Java, Cargo for Rust.
 
 * **Read only.** A client never writes to Cumulocity, the catalog or the lake, by any route, DataHub included: SQL
   it sends is `SELECT` only. The catalog principal is read-only anyway. Test data reaches the lake only through the
-  harness, which posts it to Cumulocity like a device.
+  harness, which posts it to Cumulocity like a device. Clients keep their default telemetry: Iceberg Java's
+  scan-metrics reports go to the catalog's metrics endpoint, which Polaris 1.8 only logs (reporter `default`),
+  so nothing reaches the catalog's database. If the catalog ever switches to a persisting reporter, turn the
+  reports off with `rest-metrics-reporting-enabled=false`.
 * **No secrets in output.** Never print or write tokens, secrets or vended credentials, not even in error text you
   pass on; the harness scrubs `out.json` again, but logs it cannot.
 * **Vended credentials only.** Configure no storage keys and no region, except as the named `s3-region`

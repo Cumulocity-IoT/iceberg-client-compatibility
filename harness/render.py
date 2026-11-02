@@ -81,6 +81,10 @@ def render(columns, clients, results):
                 cells.append(cell)
             lines.append("| " + " | ".join(cells) + " |")
         lines.append("")
+    if used:
+        lines += ["### What the columns mean", "", "| Column | Meaning |", "|---|---|"]
+        lines += [f"| {c['title']} | {c['meaning']} |" for c in used]
+        lines.append("")
     lines += [f"[^{i}]: {text}" for i, text in enumerate(notes, 1)]
     return "\n".join(lines).strip() + "\n"
 

@@ -4,9 +4,9 @@ from harness.redact import redact
 from harness.render import render, version_key
 
 COLUMNS = [
-    {"id": "catalog-login", "title": "Login"},
-    {"id": "latest-tables", "title": "Latest tables"},
-    {"id": "views", "title": "Views"},
+    {"id": "catalog-login", "title": "Login", "meaning": "Logs in."},
+    {"id": "latest-tables", "title": "Latest tables", "meaning": "Reads the latest tables."},
+    {"id": "views", "title": "Views", "meaning": "Runs the views."},
 ]
 CLIENTS = {
     "pyiceberg": {"name": "PyIceberg", "section": "library"},
@@ -39,7 +39,8 @@ class RenderTest(unittest.TestCase):
         ])
         lines = table.splitlines()
         self.assertLess(lines.index("### Client libraries"), lines.index("### Engines"))
-        self.assertNotIn("Views", table)  # no result carries the column
+        self.assertNotIn("Views", table)  # no result carries the column, so neither the table nor the meanings
+        self.assertIn("| Latest tables | Reads the latest tables. |", lines)
         self.assertIn("| PyIceberg | 0.12.0 | 2026-11-09 | ✅ | ❌[^1] |", lines)
         self.assertIn("| PyIceberg | 0.11.1 | 2026-11-02, not re-tested | ✅ |  |", lines)
         self.assertIn("| Apache DataFusion | 53.1.0 | iceberg-rust | 2026-11-09 | ⚠️[^2] |  |", lines)
