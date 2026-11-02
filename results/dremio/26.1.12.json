@@ -5,11 +5,11 @@
   "checks": {
     "catalog-login": {
       "status": "ok",
-      "note": "The Dremio source Cumulocity provisions logs in to the catalog with an OAuth2 client credential."
+      "note": "A Dremio data source was provisioned with the OAuth client credential and credential vending."
     },
     "s3": {
       "status": "ok",
-      "note": "The Dremio source Cumulocity provisions reads the storage with vended credentials."
+      "note": "A Dremio data source was provisioned with the OAuth client credential and credential vending."
     },
     "cdc-tables": {
       "status": "ok",
@@ -93,7 +93,7 @@
     "schema-evolution": {
       "status": "ok",
       "data": {
-        "run": "run-20261102T192128Z",
+        "run": "run-20261102T193507Z",
         "baseline": null
       }
     },
