@@ -1,0 +1,7 @@
+name = "Apache Flink"
+section = "engine"
+built_on = "iceberg-java"
+release = { pypi = "apache-flink" }
+pin = { match = 'apache-flink==([0-9][^"]*)' }
+# A Flink line counts only once Iceberg publishes its runtime; the runtime version follows.
+requires = { maven = "org.apache.iceberg:iceberg-flink-runtime-{minor}", pin = 'ICEBERG = "([^"]+)"' }

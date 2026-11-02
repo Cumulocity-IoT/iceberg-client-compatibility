@@ -1,0 +1,5 @@
+name = "Apache Doris"
+section = "engine"
+built_on = "iceberg-java"
+release = { dockerhub = "apache/doris", tag = 'fe-([0-9.]+)' }
+pin = { match = 'DORIS="([0-9.]+)"' }

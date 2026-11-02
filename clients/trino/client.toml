@@ -1,0 +1,7 @@
+name = "Trino"
+section = "engine"
+built_on = "iceberg-java"
+# Since Trino 477 the server tarballs are published on GitHub releases only; io.trino:trino-server on Maven
+# Central stops at 476.
+release = { github = "trinodb/trino" }
+pin = { match = '(?m)^TRINO_VERSION=([0-9]+)$' }

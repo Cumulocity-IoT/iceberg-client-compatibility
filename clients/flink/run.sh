@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Usage, from the repository root: clients/flink/run.sh <plan.json> <out.json>
+set -euo pipefail
+. harness/env.sh
+export PYTHONDONTWRITEBYTECODE=1  # importing harness.redact must not write into harness/
+# This Flink supports Java 11, 17 and 21 (17 recommended): the runner's preinstalled 21, else one from mise.
+if ! java -version 2>&1 | grep -qE 'version "(17|21)[."]'; then
+  if [ -n "${JAVA_HOME_21_X64:-}" ]; then
+    JAVA_HOME="$JAVA_HOME_21_X64"
+  else
+    mise install -q java@21 >/dev/null
+    JAVA_HOME="$(mise where java@21)"
+  fi
+  export JAVA_HOME PATH="$JAVA_HOME/bin:$PATH"
+fi
+exec uv run --script clients/flink/checks.py "$1" "$2"
