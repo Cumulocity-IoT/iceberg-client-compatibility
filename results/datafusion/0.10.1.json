@@ -25,6 +25,10 @@
     "identifiers": {
       "status": "ok"
     },
+    "incremental-read": {
+      "note": "iceberg-rust, which iceberg-datafusion is built on, scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)",
+      "status": "na"
+    },
     "large-values": {
       "status": "ok"
     },

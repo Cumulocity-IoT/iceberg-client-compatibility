@@ -1,0 +1,86 @@
+{
+  "client": "doris",
+  "version": "4.1.5",
+  "build": "Apache Doris 4.1.5 (Docker apache/doris:fe-4.1.5, apache/doris:be-4.1.5), Iceberg Java 1.11.0, doris-4.1.5-release-917b20be838, pymysql 1.2.3",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "namespaces": 17
+      }
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 5
+      }
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5002,
+        "ids": 5002,
+        "equality_delete_files": 104
+      }
+    },
+    "identifiers": {
+      "status": "ok",
+      "data": {
+        "columns": 5
+      }
+    },
+    "views": {
+      "status": "fail",
+      "note": "Doris 4.1.5 raises \"Cannot get engine-name for view\" because the view versions record no engine-name, which the Iceberg view spec makes optional; apache/doris#69829 (merged to master on 2026-11-02) loads such views."
+    },
+    "decimal": {
+      "status": "ok",
+      "data": {
+        "decimalValue": "12345678901234567000.000000000",
+        "fractionDecimal": "0.123456789",
+        "tinyDecimal": "0.000000001"
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "incremental-read": {
+      "status": "na",
+      "data": {
+        "from": "6509314465971582187",
+        "to": "8782628566666137816",
+        "rows": 8
+      },
+      "note": "Doris documents @incr incremental reads for Hudi and Paimon tables, not for Iceberg tables (doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog); on an Iceberg table Doris accepts @incr and ignores it, returning all 8 rows of the table."
+    },
+    "timestamps": {
+      "status": "ok",
+      "data": {
+        "text": "2026-11-02 15:41:12.345000+05:30",
+        "ms": 1793614272345
+      },
+      "note": "The MySQL protocol carries TIMESTAMPTZ(6) as text in the session time zone, so the instant is read as epoch milliseconds through MILLISECOND_TIMESTAMP."
+    }
+  },
+  "date": "2026-11-02"
+}

@@ -1,0 +1,104 @@
+{
+  "client": "trino",
+  "version": "484",
+  "build": "Trino 484 (trino-server-core with the trino-iceberg plugin), trino Python client 0.340.0, Java 25.0.5",
+  "checks": {
+    "catalog-login": {
+      "status": "warn",
+      "data": {
+        "namespaces": 17
+      },
+      "workaround": "s3-region",
+      "note": "Without it the catalog does not load and the server does not start: SdkClientException: Unable to load region from any of the providers in the chain DefaultAwsRegionProviderChain."
+    },
+    "s3": {
+      "status": "warn",
+      "data": {
+        "rows": 5
+      },
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:15: Table 'lake.cdc_measurement.c8y_temperature' does not exist"
+    },
+    "cdc-tables": {
+      "status": "warn",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      },
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:22: Table 'lake.cdc_measurement.c8y_temperature' does not exist"
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5002,
+        "ids": 5002
+      }
+    },
+    "identifiers": {
+      "status": "warn",
+      "data": {
+        "labels": [
+          "camelCaseName",
+          "dash-name",
+          "dot_x002Ename",
+          "value",
+          "select"
+        ]
+      },
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:21: Table 'lake.cdc_event.compat_x002eescaped' does not exist"
+    },
+    "views": {
+      "status": "fail",
+      "note": "With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set"
+    },
+    "decimal": {
+      "status": "warn",
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:68: Table 'lake.cdc_event.compat_fixture' does not exist"
+    },
+    "timestamps": {
+      "status": "warn",
+      "data": {
+        "value": "2026-11-02T10:11:12.345000+00:00",
+        "session_time_zone": "Asia/Kolkata"
+      },
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:49: Table 'lake.cdc_event.compat_fixture' does not exist"
+    },
+    "nesting": {
+      "status": "warn",
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:171: Table 'lake.cdc_event.compat_fixture' does not exist"
+    },
+    "large-values": {
+      "status": "warn",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      },
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:27: Table 'lake.cdc_event.compat_fixture' does not exist"
+    },
+    "schema-evolution": {
+      "status": "warn",
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:28: Table 'lake.cdc_event.compat_fixture' does not exist"
+    },
+    "incremental-read": {
+      "status": "warn",
+      "data": {
+        "start_snapshot": 6509314465971582187,
+        "end_snapshot": 8782628566666137816,
+        "rows": 1
+      },
+      "workaround": "case-insensitive-names",
+      "note": "Without it: TABLE_NOT_FOUND: line 1:50: Table 'lake.cdc_event.\"compat_fixture$snapshots\"' does not exist"
+    }
+  },
+  "date": "2026-11-02"
+}

@@ -1,0 +1,75 @@
+{
+  "client": "clickhouse",
+  "version": "26.10.2.103",
+  "build": "clickhouse local 26.10.2.103 (DataLakeCatalog database engine), release binary for Linux x86_64",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "namespaces": 9
+      },
+      "note": "ClickHouse lists the tables of each namespace, not the namespaces, so view_measurement, which holds only a view, is not listed."
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 5
+      }
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5002,
+        "ids": 5002
+      }
+    },
+    "identifiers": {
+      "status": "ok",
+      "data": {
+        "columns": 5
+      }
+    },
+    "views": {
+      "status": "na",
+      "note": "ClickHouse's Iceberg REST catalog loads only tables, never views (src/Databases/DataLake/RestCatalog.cpp), so the view is an unknown table (UNKNOWN_TABLE)."
+    },
+    "decimal": {
+      "status": "ok"
+    },
+    "timestamps": {
+      "status": "ok",
+      "data": {
+        "value": "2026-11-02 10:11:12.345000",
+        "type": "Nullable(DateTime64(6, 'UTC'))"
+      }
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
+    },
+    "incremental-read": {
+      "status": "na",
+      "note": "ClickHouse reads an Iceberg table at one snapshot (iceberg_snapshot_id, iceberg_timestamp_ms) and has no incremental read between snapshots (clickhouse.com/docs/engines/table-engines/integrations/iceberg)."
+    }
+  },
+  "date": "2026-11-02"
+}

@@ -1,0 +1,73 @@
+{
+  "client": "duckdb",
+  "version": "2.0.0",
+  "build": "duckdb 2.0.0, avro extension 345c3f4e82, httpfs extension 77392a7207, iceberg extension 4c0c0874c4, pytz 2026.6",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "namespaces": 15
+      }
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 5
+      }
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5002,
+        "ids": 5002
+      }
+    },
+    "identifiers": {
+      "status": "ok",
+      "data": {
+        "columns": 5
+      }
+    },
+    "views": {
+      "status": "fail",
+      "note": "DuckDB runs only an Iceberg view's 'duckdb' SQL representation and these views carry DremioSQL, spark, trino and starrocks (Binder Error: Cannot query Iceberg view '\"c8y_Temperature\"': no SQL representation with dialect 'duckdb')."
+    },
+    "decimal": {
+      "status": "ok"
+    },
+    "timestamps": {
+      "status": "ok",
+      "data": {
+        "value": "2026-11-02T15:41:12.345000+05:30"
+      }
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
+    },
+    "incremental-read": {
+      "status": "na",
+      "note": "iceberg_scan reads one snapshot and has no start/end snapshot range (Binder Error: Invalid named parameter \"start_snapshot_id\" for function iceberg_scan); incremental reads are an open request (duckdb/duckdb-iceberg#1355)."
+    }
+  },
+  "date": "2026-11-02"
+}

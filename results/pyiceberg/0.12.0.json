@@ -51,6 +51,14 @@
     },
     "schema-evolution": {
       "status": "ok"
+    },
+    "incremental-read": {
+      "status": "ok",
+      "data": {
+        "from": "6509314465971582187",
+        "to": "8782628566666137816",
+        "rows": 1
+      }
     }
   },
   "date": "2026-11-02"

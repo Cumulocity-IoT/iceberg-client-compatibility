@@ -1,0 +1,85 @@
+{
+  "build": "iceberg-go 0.7.0, arrow-go 18.8.0, gocloud.dev 0.46.0, Go 1.27.3",
+  "checks": {
+    "catalog-login": {
+      "data": {
+        "namespaces": 15
+      },
+      "status": "ok"
+    },
+    "cdc-tables": {
+      "data": {
+        "after": 51840,
+        "before": 51840,
+        "device": 34560,
+        "not_device": 69120,
+        "total": 103680
+      },
+      "status": "ok"
+    },
+    "decimal": {
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid: referenced field %!s(<nil>) was decimal(38, 9), but should have been utf8\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "status": "warn",
+      "workaround": "filter-after-scan"
+    },
+    "identifiers": {
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving no row; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "status": "warn",
+      "workaround": "filter-after-scan"
+    },
+    "incremental-read": {
+      "data": {
+        "added_records": "1",
+        "from": 6509314465971582187,
+        "rows": 1,
+        "to": 8782628566666137816
+      },
+      "status": "ok"
+    },
+    "large-values": {
+      "data": {
+        "bytes": 32768,
+        "chars": 16384
+      },
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "status": "warn",
+      "workaround": "filter-after-scan"
+    },
+    "latest-tables": {
+      "data": {
+        "ids": 5002,
+        "rows": 5002
+      },
+      "status": "ok"
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "s3": {
+      "data": {
+        "rows": 5
+      },
+      "status": "ok"
+    },
+    "schema-evolution": {
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "status": "warn",
+      "workaround": "filter-after-scan"
+    },
+    "timestamps": {
+      "data": {
+        "stampMillis": "2026-11-02T15:41:12.345+05:30"
+      },
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "status": "warn",
+      "workaround": "filter-after-scan"
+    },
+    "views": {
+      "note": "Iceberg Go loads the view metadata (dialects DremioSQL, spark, trino, starrocks) but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec).",
+      "status": "na"
+    }
+  },
+  "client": "iceberg-go",
+  "version": "0.7.0",
+  "date": "2026-11-02"
+}

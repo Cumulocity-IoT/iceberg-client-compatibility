@@ -1,0 +1,79 @@
+{
+  "client": "starrocks",
+  "version": "4.1.7",
+  "build": "StarRocks 4.1.7-b81ff9c (starrocks/allin1-ubuntu image, FE on Iceberg Java's REST catalog), queried over the MySQL protocol with PyMySQL 1.2.3",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "namespaces": 16
+      }
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 5
+      }
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5002,
+        "ids": 5002,
+        "position_delete_files": 109,
+        "equality_delete_files": 108
+      }
+    },
+    "identifiers": {
+      "status": "ok",
+      "data": {
+        "columns": 5
+      }
+    },
+    "views": {
+      "status": "ok",
+      "data": {
+        "view": 34560,
+        "table": 34560
+      },
+      "note": "StarRocks runs the view's starrocks SQL representation."
+    },
+    "decimal": {
+      "status": "ok"
+    },
+    "timestamps": {
+      "status": "ok",
+      "data": {
+        "value": "2026-11-02T15:41:12.345000"
+      }
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
+    },
+    "incremental-read": {
+      "status": "na",
+      "note": "StarRocks SQL reads an Iceberg table at one snapshot only (VERSION AS OF, TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel)."
+    }
+  },
+  "date": "2026-11-02"
+}
