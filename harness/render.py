@@ -61,12 +61,14 @@ def render(columns, clients, results):
             client = clients[r["client"]]
             tested = r["date"] if r["version"] == latest[r["client"]] else f"{r['date']}, not re-tested"
             cells = [client["name"], r["version"], tested]
-            # The cells that need the same workaround share one footnote, with the note of the first of them.
+            # The cells that need the same workaround share one footnote, with the note of the first of them;
+            # cells without a workaround share one when their notes are the same.
             groups = {}
             for c in used:
                 check = r["checks"].get(c["id"], {})
-                if check.get("workaround"):
-                    groups.setdefault(check["workaround"], {"titles": [], "note": check.get("note")})["titles"].append(c["title"])
+                key = ("workaround", check["workaround"]) if check.get("workaround") else ("note", check.get("note"))
+                if key[1]:
+                    groups.setdefault(key, {"titles": [], "note": check.get("note")})["titles"].append(c["title"])
             refs = {}
             for c in used:
                 check = r["checks"].get(c["id"])
@@ -75,16 +77,15 @@ def render(columns, clients, results):
                     continue
                 cell = ICONS[check["status"]]
                 workaround, note = check.get("workaround"), check.get("note")
-                if workaround:
-                    if workaround not in refs:
-                        group = groups[workaround]
-                        notes.append(f"{client['name']} {r['version']}, {', '.join(group['titles'])}: needs the "
-                                     f"`{workaround}` workaround" + (f": {group['note']}" if group["note"] else ""))
-                        refs[workaround] = len(notes)
-                    cell += f"[^{refs[workaround]}]"
-                elif note:
-                    notes.append(f"{client['name']} {r['version']}, {c['title']}: {note}")
-                    cell += f"[^{len(notes)}]"
+                key = ("workaround", workaround) if workaround else ("note", note)
+                if key[1]:
+                    if key not in refs:
+                        group = groups[key]
+                        text = (f"needs the `{workaround}` workaround" + (f": {group['note']}" if group["note"] else "")
+                                if workaround else note)
+                        notes.append(f"{client['name']} {r['version']}, {', '.join(group['titles'])}: {text}")
+                        refs[key] = len(notes)
+                    cell += f"[^{refs[key]}]"
                 cells.append(cell)
             lines.append("| " + " | ".join(cells) + " |")
         lines.append("")

@@ -15,10 +15,9 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from example import TENANT, info, query, query_typed  # noqa: E402
 from harness.redact import redact  # noqa: E402
 
-# The Dremio source is the one Cumulocity provisions for the tenant; these cells state how that source reaches the
-# catalog and the storage, which the queries through it then prove.
-LOGIN = "The Dremio source Cumulocity provisions logs in to the catalog with an OAuth2 client credential."
-VENDED = "The Dremio source Cumulocity provisions reads the storage with vended credentials."
+# One provisioning step sets up both: login and storage access are properties of the Dremio data source, which the
+# queries through it then prove.
+SOURCE = "A Dremio data source was provisioned with the OAuth client credential and credential vending."
 
 INCREMENTAL = ("Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause "
                "or table function for the rows appended between two snapshots "
@@ -188,8 +187,8 @@ def run(check, plan):
 def main(plan_path, out_path):
     plan = json.loads(Path(plan_path).read_text())
     checks = {
-        "catalog-login": {"status": "ok", "note": LOGIN},
-        "s3": {"status": "ok", "note": VENDED},
+        "catalog-login": {"status": "ok", "note": SOURCE},
+        "s3": {"status": "ok", "note": SOURCE},
         "cdc-tables": run(cdc_tables, plan),
         "latest-tables": run(latest_tables, plan),
         "identifiers": run(identifiers, plan),
