@@ -28,7 +28,6 @@ KOLKATA = timezone(timedelta(hours=5, minutes=30))  # Asia/Kolkata has no daylig
 INCREMENTAL = ("StarRocks SQL reads an Iceberg table at one snapshot only (VERSION AS OF, TIMESTAMP AS OF) and has no "
                "clause or table function for the rows appended between two snapshots "
                "(docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel).")
-VIEWS = "StarRocks runs the view's starrocks SQL representation."
 
 
 class Fail(Exception):
@@ -214,7 +213,7 @@ def main(plan_path, out_path):
             return {"status": "fail", "data": d, "note": f"The view returns {d['view']} rows, its base table {d['table']}."}
         if d["table"] == 0:
             return {"status": "inconclusive", "data": d, "note": "The base table has no rows for the device in the window."}
-        return {"status": "ok", "data": d, "note": VIEWS}
+        return {"status": "ok", "data": d}
 
     def attempt(check):
         try:
