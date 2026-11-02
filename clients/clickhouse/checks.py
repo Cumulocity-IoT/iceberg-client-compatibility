@@ -59,11 +59,7 @@ def catalog_login(plan):
     missing = sorted({plan[k]["namespace"] for k in ("measurement", "latest", "escaped")} - listed)
     if missing:
         return {"status": "fail", "note": f"SHOW TABLES FROM lake lists no table of {', '.join(missing)}."}
-    result = {"status": "ok", "data": {"namespaces": len(listed)}}
-    if plan["view"]["namespace"] not in listed:
-        result["note"] = (f"ClickHouse lists the tables of each namespace, not the namespaces, so "
-                          f"{plan['view']['namespace']}, which holds only a view, is not listed.")
-    return result
+    return {"status": "ok", "data": {"namespaces": len(listed)}}
 
 
 def s3(plan):
