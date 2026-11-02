@@ -1,5 +1,4 @@
 name = "Daft"
 section = "engine"
-built_on = "pyiceberg"
 release = { pypi = "daft" }
 pin = { match = 'daft==([0-9][^"]*)' }

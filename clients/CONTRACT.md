@@ -7,7 +7,7 @@ any client the same way.
 
 | File | Purpose |
 |---|---|
-| `client.toml` | Name, section (`library`, `engine`, `product`), `built_on`, where releases are published |
+| `client.toml` | Name, section (`library`, `engine`, `product`), where releases are published and where the version is pinned |
 | `example.*` | The snippet customers copy: connect with the catalog settings and read a few rows. Nothing else |
 | `run.sh` | Entry point: `clients/<id>/run.sh <plan.json> <out.json>`, run from the repository root |
 | checks (any name) | The checks below. They import or call the connection code of `example.*`, never a copy of it |

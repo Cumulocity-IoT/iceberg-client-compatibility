@@ -1,7 +1,4 @@
 name = "StarRocks"
 section = "engine"
-# StarRocks reads the data in its own C++ BE; the FE plans scans with Iceberg Java's RESTSessionCatalog
-# (fe/fe-core/.../connector/iceberg/rest/IcebergRESTCatalog.java).
-built_on = "iceberg-java"
 release = { dockerhub = "starrocks/allin1-ubuntu" }
 pin = { match = 'allin1-ubuntu:([0-9][0-9.]*[0-9])' }

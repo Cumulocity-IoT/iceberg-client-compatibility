@@ -1,3 +1,0 @@
-name = "iceberg-rust"
-section = "library"
-release = { crates = "iceberg" }

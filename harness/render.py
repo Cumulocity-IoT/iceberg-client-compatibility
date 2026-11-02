@@ -55,17 +55,12 @@ def render(columns, clients, results):
             continue
         rows.sort(key=lambda r: version_key(r["version"]), reverse=True)
         rows.sort(key=lambda r: clients[r["client"]]["name"].lower())
-        built_on = section != "library"
-        header = ["Client", "Version"] + (["Built on"] if built_on else []) + ["Tested"] + [c["title"] for c in used]
+        header = ["Client", "Version", "Tested"] + [c["title"] for c in used]
         lines += [f"### {heading}", "", "| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
         for r in rows:
             client = clients[r["client"]]
             tested = r["date"] if r["version"] == latest[r["client"]] else f"{r['date']}, not re-tested"
-            cells = [client["name"], r["version"]]
-            if built_on:
-                base = client.get("built_on")
-                cells.append(clients[base]["name"] if base in clients else (base or ""))
-            cells.append(tested)
+            cells = [client["name"], r["version"], tested]
             # The cells that need the same workaround share one footnote, with the note of the first of them.
             groups = {}
             for c in used:

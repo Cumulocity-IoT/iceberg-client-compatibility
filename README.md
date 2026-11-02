@@ -23,24 +23,24 @@ to reading tables that are updated with delete files. What each column means is 
 
 ### Engines
 
-| Client | Version | Built on | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Apache DataFusion | 0.10.1 | iceberg-rust | 2026-11-02 | ⚠️[^6] | ✅ | ✅ | ✅ | ✅ | ➖[^7] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^8] |
-| Apache Doris | 4.1.5 | Iceberg Java | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^9] | ✅ | ✅[^10] | ✅ | ✅ | ✅ | ❌[^11] |
-| Apache Flink | 2.3.0 | Iceberg Java | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^12] | ✅ | ✅ | ✅ | ❌[^13] |
-| Apache Spark | 4.1.4 | Iceberg Java | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| ClickHouse | 26.10.2.103 |  | 2026-11-02 | ✅[^14] | ✅ | ✅ | ✅ | ✅ | ➖[^15] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^16] |
-| Daft | 0.7.26 | PyIceberg | 2026-11-02 | ✅ | ✅ | ❌[^17] | ➖[^18] | ✅ | ➖[^19] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^20] |
-| DuckDB | 2.0.0 |  | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^21] | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^22] |
-| Polars | 2.1.0 | PyIceberg | 2026-11-02 | ✅ | ✅ | ✅ | ➖[^23] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^24] |
-| StarRocks | 4.1.7 | Iceberg Java | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^25] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅[^26] |
-| Trino | 484 | Iceberg Java | 2026-11-02 | ⚠️[^27] | ⚠️[^28] | ⚠️[^28] | ✅ | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ❌[^29] |
+| Client | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Apache DataFusion | 0.10.1 | 2026-11-02 | ⚠️[^6] | ✅ | ✅ | ✅ | ✅ | ➖[^7] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^8] |
+| Apache Doris | 4.1.5 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^9] | ✅ | ✅[^10] | ✅ | ✅ | ✅ | ❌[^11] |
+| Apache Flink | 2.3.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^12] | ✅ | ✅ | ✅ | ❌[^13] |
+| Apache Spark | 4.1.4 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ClickHouse | 26.10.2.103 | 2026-11-02 | ✅[^14] | ✅ | ✅ | ✅ | ✅ | ➖[^15] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^16] |
+| Daft | 0.7.26 | 2026-11-02 | ✅ | ✅ | ❌[^17] | ➖[^18] | ✅ | ➖[^19] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^20] |
+| DuckDB | 2.0.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^21] | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^22] |
+| Polars | 2.1.0 | 2026-11-02 | ✅ | ✅ | ✅ | ➖[^23] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^24] |
+| StarRocks | 4.1.7 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^25] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅[^26] |
+| Trino | 484 | 2026-11-02 | ⚠️[^27] | ⚠️[^28] | ⚠️[^28] | ✅ | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ⚠️[^28] | ❌[^29] |
 
 ### Products
 
-| Client | Version | Built on | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Dremio Enterprise | 26.1.12 | Iceberg Java | 2026-11-02 | ✅[^30] | ✅[^31] | ✅ | ✅ | ✅ | ➖[^32] | ✅[^33] | ✅[^34] | ✅ | ✅ | ✅ | ✅ |
+| Client | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Dremio Enterprise | 26.1.12 | 2026-11-02 | ✅[^30] | ✅[^31] | ✅ | ✅ | ✅ | ➖[^32] | ✅[^33] | ✅[^34] | ✅ | ✅ | ✅ | ✅ |
 
 ### What the columns mean
 

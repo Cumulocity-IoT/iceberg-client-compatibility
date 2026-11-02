@@ -1,5 +1,4 @@
 name = "Polars"
 section = "engine"
-built_on = "pyiceberg"
 release = { pypi = "polars" }
 pin = { match = 'polars\[iceberg\]==([0-9][^"]*)' }

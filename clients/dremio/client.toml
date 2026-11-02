@@ -1,3 +1,2 @@
 name = "Dremio Enterprise"
 section = "product"
-built_on = "iceberg-java"

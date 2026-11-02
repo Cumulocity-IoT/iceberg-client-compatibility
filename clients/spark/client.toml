@@ -1,6 +1,5 @@
 name = "Apache Spark"
 section = "engine"
-built_on = "iceberg-java"
 release = { pypi = "pyspark" }
 pin = { match = 'pyspark==([0-9][^"]*)' }
 # A Spark line counts only once Iceberg publishes its runtime; the runtime version follows.
