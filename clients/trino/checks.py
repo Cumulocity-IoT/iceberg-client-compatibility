@@ -264,11 +264,18 @@ CHECKS = {"catalog-login": catalog_login, "s3": s3, "cdc-tables": cdc_tables, "l
           "incremental-read": incremental_read}
 
 
+# The error Trino gives for a view without default catalog, which the patch sketched there fixes.
+VIEW_WITHOUT_CATALOG = "Schema must be specified when session schema is not set"
+VIEW_FIX = "A fix is sketched in https://github.com/Cumulocity-IoT/trino-fixes/pull/1."
+
+
 def main(plan_path, out_path):
     plan = json.loads(Path(plan_path).read_text())
     checks = {}
     for check_id, check in CHECKS.items():
         checks[check_id] = attempt(check, plan)
+        if check_id == "views" and VIEW_WITHOUT_CATALOG in checks[check_id].get("note", ""):
+            checks[check_id]["note"] += " " + VIEW_FIX
         print(check_id, checks[check_id]["status"], checks[check_id].get("workaround", ""), file=sys.stderr)
     switch = os.environ.get("TRINO_CONNECT_WORKAROUND")
     if switch and checks["catalog-login"]["status"] in ("ok", "warn"):
