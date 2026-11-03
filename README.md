@@ -41,6 +41,7 @@ to reading tables that are updated with delete files. What each column means is 
 | Client | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Dremio Enterprise | 26.1.12 | 2026-11-02 | ✅[^28] | ✅[^28] | ✅ | ✅ | ✅ | ➖[^29] | ✅[^30] | ✅[^31] | ✅ | ✅ | ✅ | ✅ |
+| Snowflake | 10.39.101 | 2026-11-03 | ✅[^32] | ✅[^32] | ✅ | ➖[^33] | ✅ | ➖[^34] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^35] |
 
 ### What the columns mean
 
@@ -90,6 +91,10 @@ to reading tables that are updated with delete files. What each column means is 
 [^29]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
 [^30]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
 [^31]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
+[^32]: Snowflake 10.39.101, Login, S3: A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending.
+[^33]: Snowflake 10.39.101, Latest tables: A catalog-linked database does not read equality delete files ("Row-level deletes with equality delete files aren't supported", docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 091968 (0A000): Equality deletes on Iceberg tables are not supported.
+[^34]: Snowflake 10.39.101, Incremental read: Snowflake has no incremental read of an Iceberg table in a catalog-linked database; the CHANGES query fails with ProgrammingError: 091947 (0A000): CHANGES clause is not supported on external tables or Iceberg tables with an external catalog integration, saw 'compat_Fixture'.
+[^35]: Snowflake 10.39.101, Views: A catalog-linked database syncs the remote namespaces as schemas and their Iceberg tables, not Iceberg views (docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 002003 (42S02): SQL compilation error: Object 'T2027824580."view_measurement"."c8y_Temperature"' does not exist or not authorized. Your primary role COMPAT_READER or one of your secondary roles must have at least one privilege granted on TABLE T2027824580."view_measurement"."c8y_Temperature".
 <!-- END GENERATED TABLE -->
 
 ✅ works · ⚠️ works with a workaround, see the footnote · ❌ fails · ➖ not supported by the client ·
