@@ -54,7 +54,7 @@
     },
     "views": {
       "status": "fail",
-      "note": "With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set"
+      "note": "With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set A fix is sketched in https://github.com/Cumulocity-IoT/trino-fixes/pull/1."
     },
     "decimal": {
       "status": "warn",
@@ -92,13 +92,13 @@
     "incremental-read": {
       "status": "warn",
       "data": {
-        "start_snapshot": 6509314465971582187,
-        "end_snapshot": 8782628566666137816,
+        "start_snapshot": 1362924555434530964,
+        "end_snapshot": 1770607626136220207,
         "rows": 1
       },
       "workaround": "case-insensitive-names",
       "note": "Without it: TABLE_NOT_FOUND: line 1:50: Table 'lake.cdc_event.\"compat_fixture$snapshots\"' does not exist"
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-03"
 }

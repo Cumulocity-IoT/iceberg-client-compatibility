@@ -18,21 +18,21 @@
       "status": "ok"
     },
     "decimal": {
-      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid: referenced field %!s(<nil>) was decimal(38, 9), but should have been utf8\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid: referenced field %!s(<nil>) was decimal(38, 9), but should have been utf8\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1.",
       "status": "warn",
       "workaround": "filter-after-scan"
     },
     "identifiers": {
-      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving no row; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving no row; the workaround plans the files with the filter, reads them without it and filters the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1.",
       "status": "warn",
       "workaround": "filter-after-scan"
     },
     "incremental-read": {
       "data": {
         "added_records": "1",
-        "from": 6509314465971582187,
+        "from": 1362924555434530964,
         "rows": 1,
-        "to": 8782628566666137816
+        "to": 1770607626136220207
       },
       "status": "ok"
     },
@@ -41,7 +41,7 @@
         "bytes": 32768,
         "chars": 16384
       },
-      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1.",
       "status": "warn",
       "workaround": "filter-after-scan"
     },
@@ -62,7 +62,7 @@
       "status": "ok"
     },
     "schema-evolution": {
-      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving no row; the workaround plans the files with the filter, reads them without it and filters the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1.",
       "status": "warn",
       "workaround": "filter-after-scan"
     },
@@ -70,7 +70,7 @@
       "data": {
         "stampMillis": "2026-11-02T15:41:12.345+05:30"
       },
-      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.",
+      "note": "a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error \"invalid\"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1.",
       "status": "warn",
       "workaround": "filter-after-scan"
     },
@@ -81,5 +81,5 @@
   },
   "client": "iceberg-go",
   "version": "0.7.0",
-  "date": "2026-11-02"
+  "date": "2026-11-03"
 }

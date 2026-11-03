@@ -17,7 +17,7 @@ to reading tables that are updated with delete files. What each column means is 
 
 | Client | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Iceberg Go | 0.7.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ⚠️[^1] | ✅ | ⚠️[^1] | ⚠️[^1] | ✅ | ⚠️[^1] | ⚠️[^1] | ➖[^2] |
+| Iceberg Go | 0.7.0 | 2026-11-03 | ✅ | ✅ | ✅ | ✅ | ⚠️[^1] | ✅ | ⚠️[^1] | ⚠️[^1] | ✅ | ⚠️[^1] | ⚠️[^1] | ➖[^2] |
 | Iceberg Java | 1.12.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^3] |
 | PyIceberg | 0.12.0 | 2026-11-02 | ✅ | ✅ | ✅ | ➖[^4] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^5] |
 
@@ -34,7 +34,7 @@ to reading tables that are updated with delete files. What each column means is 
 | DuckDB | 2.0.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^20] | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^21] |
 | Polars | 2.1.0 | 2026-11-02 | ✅ | ✅ | ✅ | ➖[^22] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^23] |
 | StarRocks | 4.1.7 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^24] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Trino | 484 | 2026-11-02 | ⚠️[^25] | ⚠️[^26] | ⚠️[^26] | ✅ | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ❌[^27] |
+| Trino | 484 | 2026-11-03 | ⚠️[^25] | ⚠️[^26] | ⚠️[^26] | ✅ | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ⚠️[^26] | ❌[^27] |
 
 ### Products
 
@@ -59,7 +59,7 @@ to reading tables that are updated with delete files. What each column means is 
 | Identifiers | Finds tables and columns under their exact names: camelCase, escaped special characters such as `compat_x002EEscaped`, dashes, and SQL reserved words. |
 | Views | Runs the views in the `view_*` namespaces, which turn nested fields into plain columns, and gets the same rows as from their base tables. |
 
-[^1]: Iceberg Go 0.7.0, Schema evolution, Decimal, Timestamps, Large values, Identifiers: needs the `filter-after-scan` workaround: a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving the error "invalid"; the workaround plans the files with the filter, reads them without it and filters the rows after the scan.
+[^1]: Iceberg Go 0.7.0, Schema evolution, Decimal, Timestamps, Large values, Identifiers: needs the `filter-after-scan` workaround: a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving no row; the workaround plans the files with the filter, reads them without it and filters the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1.
 [^2]: Iceberg Go 0.7.0, Views: Iceberg Go loads the view metadata (dialects DremioSQL, spark, trino, starrocks) but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec).
 [^3]: Iceberg Java 1.12.0, Views: Iceberg Java loads the view metadata (dialects DremioSQL, spark, trino, starrocks) but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec).
 [^4]: PyIceberg 0.12.0, Latest tables: PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210).
@@ -85,7 +85,7 @@ to reading tables that are updated with delete files. What each column means is 
 [^24]: StarRocks 4.1.7, Incremental read: StarRocks SQL reads an Iceberg table at one snapshot only (VERSION AS OF, TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel).
 [^25]: Trino 484, Login: needs the `s3-region` workaround: Without it the catalog does not load and the server does not start: SdkClientException: Unable to load region from any of the providers in the chain DefaultAwsRegionProviderChain.
 [^26]: Trino 484, S3, CDC tables, Schema evolution, Incremental read, Decimal, Timestamps, Nesting, Large values, Identifiers: needs the `case-insensitive-names` workaround: Without it: TABLE_NOT_FOUND: line 1:15: Table 'lake.cdc_measurement.c8y_temperature' does not exist
-[^27]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set
+[^27]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set A fix is sketched in https://github.com/Cumulocity-IoT/trino-fixes/pull/1.
 [^28]: Dremio Enterprise 26.1.12, Login, S3: A Dremio data source was provisioned with the OAuth client credential and credential vending.
 [^29]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
 [^30]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
