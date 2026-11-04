@@ -433,7 +433,7 @@ fn write(out_path: &str, mut checks: BTreeMap<&str, Value>) -> Res<()> {
         let re = Regex::new(&format!(r#"name = "{name}"\nversion = "([^"]+)""#)).unwrap();
         re.captures(lock).map(|c| c[1].to_string()).unwrap_or_default()
     };
-    let mut crates = vec!["iceberg-datafusion", "datafusion", "iceberg", "iceberg-catalog-rest", "iceberg-storage-opendal", "opendal"];
+    let mut crates = vec!["datafusion", "iceberg-datafusion", "iceberg", "iceberg-catalog-rest", "iceberg-storage-opendal", "opendal"];
     if cfg!(feature = "tls") {
         crates.push("reqwest"); // the first reqwest in Cargo.lock is the 0.12 line the switch adds TLS to
     }
@@ -441,7 +441,7 @@ fn write(out_path: &str, mut checks: BTreeMap<&str, Value>) -> Res<()> {
     for (id, c) in &checks {
         eprintln!("{id}: {}", c["status"].as_str().unwrap_or_default());
     }
-    let out = json!({"client": "datafusion", "version": v("iceberg-datafusion"), "build": build, "checks": checks});
+    let out = json!({"client": "datafusion", "version": v("datafusion"), "build": build, "checks": checks});
     std::fs::write(out_path, serde_json::to_string_pretty(&out)? + "\n")?;
     Ok(())
 }

@@ -34,7 +34,15 @@ requires = { maven = "org.apache.iceberg:iceberg-spark-runtime-{minor}_2.13", pi
 ```
 
 The release check then takes the newest release whose `major.minor` line has that runtime, and raises the
-runtime's own pin to its latest release.
+runtime's own pin to its latest release. An integration crate that names the client's major as a dependency, such as
+iceberg-datafusion for DataFusion, is declared by that dependency instead:
+
+```toml
+requires = { crates = "iceberg-datafusion", dependency = "datafusion", pin = '(?m)^iceberg[a-z-]* = "=([0-9][^"]*)"' }
+```
+
+The release check then takes the newest release that a release of the crate depends on, and raises the crate's
+pin to the newest release that depends on it.
 
 ## Rules
 

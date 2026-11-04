@@ -1,4 +1,6 @@
 name = "Apache DataFusion"
 section = "engine"
-release = { crates = "iceberg-datafusion" }
-pin = { match = '(?m)^iceberg[a-z-]* = (?:\{ version = )?"=([0-9][^"]*)"' }
+release = { crates = "datafusion" }
+pin = { match = '(?m)^datafusion = "=([0-9][^"]*)"' }
+# A DataFusion major counts only once an iceberg-datafusion release depends on it; the iceberg crates follow.
+requires = { crates = "iceberg-datafusion", dependency = "datafusion", pin = '(?m)^iceberg[a-z-]* = (?:\{ version = )?"=([0-9][^"]*)"' }

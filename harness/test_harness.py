@@ -1,7 +1,7 @@
 import unittest
 
 from harness.redact import redact
-from harness.releases import bump, latest
+from harness.releases import bump, depends_on, latest
 from harness.render import render, version_key
 from harness.summary import changes
 
@@ -128,6 +128,12 @@ class ReleasesTest(unittest.TestCase):
         text = 'iceberg = "=0.10.1"\niceberg-datafusion = { version = "=0.10.1", features = ["x"] }\ndatafusion = "=53.1.0"\n'
         match = r'(?m)^iceberg[a-z-]* = (?:\{ version = )?"=([0-9][^"]*)"'
         self.assertEqual(text.replace("0.10.1", "0.11.0"), bump(text, match, "0.11.0"))
+
+    def test_a_crate_requirement_takes_its_major(self):
+        self.assertTrue(depends_on("^54", "54.1.0"))
+        self.assertTrue(depends_on("^53.1.0", "53.2.0"))
+        self.assertFalse(depends_on("^53.1.0", "54.1.0"))
+        self.assertFalse(depends_on(None, "54.1.0"))
 
 
 class SummaryTest(unittest.TestCase):

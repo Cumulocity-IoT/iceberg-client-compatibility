@@ -1,5 +1,5 @@
 {
-  "build": "iceberg-datafusion 0.10.1, datafusion 53.1.0, iceberg 0.10.1, iceberg-catalog-rest 0.10.1, iceberg-storage-opendal 0.10.1, opendal 0.57.0, reqwest 0.12.28",
+  "build": "datafusion 54.1.0, iceberg-datafusion 0.11.0, iceberg 0.11.0, iceberg-catalog-rest 0.11.0, iceberg-storage-opendal 0.11.0, opendal 0.58.2, reqwest 0.12.28",
   "checks": {
     "catalog-login": {
       "data": {
@@ -63,6 +63,6 @@
     }
   },
   "client": "datafusion",
-  "version": "0.10.1",
-  "date": "2026-11-02"
+  "version": "54.1.0",
+  "date": "2026-11-04"
 }

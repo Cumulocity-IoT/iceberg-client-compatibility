@@ -5,6 +5,7 @@ it lists every client with its pinned version and the one it would move to; with
 behind and records them in target/bumped.json, which harness.summary reads after the run.
 """
 
+import functools
 import json
 import os
 import re
@@ -21,6 +22,7 @@ SKIP = {"target", "__pycache__", ".venv", "client.toml"}
 STABLE = r"v?([0-9]+(?:\.[0-9]+)*)"  # a release tag or version without a pre-release or build suffix
 
 
+@functools.cache  # target() asks for the same listings once per candidate release
 def fetch(url):
     headers = {"User-Agent": "Cumulocity-IoT/iceberg-client-compatibility", "Accept": "application/json"}
     if url.startswith("https://api.github.com/") and os.environ.get("GITHUB_TOKEN"):
@@ -59,8 +61,22 @@ def latest(versions, tag=STABLE):
     return next(iter(stable(versions, tag)), None)
 
 
+def depends_on(requirement, version):
+    """Whether a Cargo requirement such as "^54" or "^53.1.0" takes this version's major."""
+    # shortcut: compares the major of a caret requirement only; upgrade when a crate declares a range.
+    found = re.match(r"[\^=~]?\s*([0-9]+)", requirement or "")
+    return bool(found) and found.group(1) == version.split(".")[0]
+
+
 def runtime(requires, version):
-    """The latest release of what `requires` names for this version's major.minor line, None if there is none."""
+    """The latest release of what `requires` names for this version, None if there is none: for Maven the one built
+    for its major.minor line, for crates the one whose `dependency` takes its major."""
+    if "dependency" in requires:
+        for candidate in stable(published(requires)):
+            deps = json.loads(fetch(f"https://crates.io/api/v1/crates/{requires['crates']}/{candidate}/dependencies"))
+            if any(d["crate_id"] == requires["dependency"] and depends_on(d["req"], version) for d in deps["dependencies"]):
+                return candidate
+        return None
     minor = ".".join(version.split(".")[:2])
     try:
         return latest(published({k: v.format(minor=minor) for k, v in requires.items() if k != "pin"}))

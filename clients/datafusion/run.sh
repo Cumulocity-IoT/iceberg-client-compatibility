@@ -7,7 +7,7 @@ plan="$1" out="$2"
 cargo=cargo
 "$cargo" --version >/dev/null 2>&1 || cargo="$HOME/.cargo/bin/cargo"  # a version-manager shim without a pinned Rust
 
-build() { "$cargo" build --release --locked --quiet --manifest-path "$dir/Cargo.toml" "$@"; }
+build() { "$cargo" build --release --quiet --manifest-path "$dir/Cargo.toml" "$@"; }
 binary="$dir/target/release/datafusion-compat"
 
 build
