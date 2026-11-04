@@ -62,7 +62,8 @@ pin to the newest release that depends on it.
   switch that fixes it, and report `warn` with `"workaround": "<name>"`. A switch needed to connect at all, such
   as `tls`, is reported on `catalog-login` only; the other checks report how they behave once connected. Known
   names: `s3-region`, `token-refresh`, `case-insensitive-names`, `tls`, `filter-after-scan` (read without the
-  row filter and filter the rows after the scan). Everything in the README's catalog
+  row filter and filter the rows after the scan), `schema-order` (select the columns in the table's schema
+  order). Everything in the README's catalog
   settings, the delegation header and the scope included, is standard configuration, never a workaround.
 * **Pin what decides the result.** Pin the client and every library that reads the data (for example pyarrow)
   to exact versions, and name them in `build`.

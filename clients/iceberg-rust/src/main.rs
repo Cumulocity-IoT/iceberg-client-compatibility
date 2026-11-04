@@ -4,6 +4,7 @@
 mod example;
 
 use std::collections::{BTreeMap, HashSet};
+use std::sync::atomic::{AtomicBool, Ordering::Relaxed};
 
 use arrow::array::{Array, ArrayRef, AsArray, BooleanArray, Decimal128Array};
 use arrow::compute::kernels::cast_utils::string_to_timestamp_nanos;
@@ -134,13 +135,12 @@ async fn main() -> Res<()> {
     // Checks on the fixture data: each reads the run's row, selecting every column by its exact name.
     let f = &plan["fixture"];
     let (run, fixture, x) = (text(&f["run_id"]), table_of(&f["table"]), &f["expect"]);
-    let or_fail = |r: Res<Value>| r.unwrap_or_else(|e| fail(&*e));
-    checks.insert("identifiers", or_fail(identifiers(&catalog, &plan, &fixture, run).await));
-    checks.insert("decimal", or_fail(compare(&catalog, &fixture, run, &x["decimals"], true).await));
-    checks.insert("nesting", or_fail(nesting(&catalog, &fixture, run, x).await));
-    checks.insert("large-values", or_fail(large_values(&catalog, &fixture, run, f).await));
-    checks.insert("schema-evolution", or_fail(schema_evolution(&catalog, &fixture, run, &x["evolution"]).await));
-    checks.insert("timestamps", or_fail(timestamps(&catalog, &fixture, run, &x["timestamp"]).await));
+    checks.insert("identifiers", fixture_check(async || identifiers(&catalog, &plan, &fixture, run).await).await);
+    checks.insert("decimal", fixture_check(async || compare(&catalog, &fixture, run, &x["decimals"], true).await).await);
+    checks.insert("nesting", fixture_check(async || nesting(&catalog, &fixture, run, x).await).await);
+    checks.insert("large-values", fixture_check(async || large_values(&catalog, &fixture, run, f).await).await);
+    checks.insert("schema-evolution", fixture_check(async || schema_evolution(&catalog, &fixture, run, &x["evolution"]).await).await);
+    checks.insert("timestamps", fixture_check(async || timestamps(&catalog, &fixture, run, &x["timestamp"]).await).await);
 
     checks.insert("incremental-read", json!({"status": "na", "note": "Iceberg Rust scans one snapshot only \
         (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in \
@@ -156,14 +156,53 @@ fn table_of(t: &Value) -> (String, String) {
     (text(&t["namespace"]).to_string(), text(&t["table"]).to_string())
 }
 
-/// A table scan with an optional row filter and the selected top-level columns, collected into Arrow batches.
+/// The "schema-order" workaround switch, on while a fixture check reruns with it; the checks run one at a time.
+static SCHEMA_ORDER: AtomicBool = AtomicBool::new(false);
+
+/// A fixture check run without switches, and only when it fails, once more with the "schema-order" switch.
+async fn fixture_check(check: impl AsyncFn() -> Res<Value>) -> Value {
+    let plain = check().await.unwrap_or_else(|e| fail(&*e));
+    if plain["status"] != "fail" {
+        return plain;
+    }
+    SCHEMA_ORDER.store(true, Relaxed);
+    let switched = check().await;
+    SCHEMA_ORDER.store(false, Relaxed);
+    match switched {
+        Ok(mut r) if r["status"] == "ok" => {
+            r["status"] = "warn".into();
+            r["workaround"] = "schema-order".into();
+            r["note"] = "Iceberg Rust relabels the selected columns by position (RecordBatchTransformer::compare_schemas) \
+                when a Parquet field name differs from its Iceberg name, as Iceberg Java writes dash-name as dash_x2Dname, \
+                so a selection in another order than the file's returns values under other columns' names; the workaround \
+                selects the columns in the table's order. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-rust-fixes/pull/1."
+                .into();
+            r
+        }
+        _ => plain,
+    }
+}
+
+/// A table scan with an optional row filter and the selected top-level columns, collected into Arrow batches
+/// whose columns are in the order of `select`.
 async fn scan(catalog: &RestCatalog, ns: &str, table: &str, filter: Option<Predicate>, select: &[&str]) -> Res<Vec<RecordBatch>> {
     let table = catalog.load_table(&TableIdent::from_strs([ns, table])?).await?;
-    let mut builder = table.scan().select(select.iter().copied());
+    let mut order = select.to_vec();
+    if SCHEMA_ORDER.load(Relaxed) {
+        // Workaround schema-order: Iceberg Rust 0.11.0 relabels a batch's columns by position, without comparing
+        // field IDs, when their names differ from the selected Iceberg names and the types line up by position
+        // (RecordBatchTransformer::compare_schemas). A Parquet file holds the columns in the table's schema order,
+        // so a selection in that order lines up by position with the file.
+        let fields = table.metadata().current_schema().as_struct().fields();
+        order.sort_by_key(|name| fields.iter().position(|f| f.name == *name));
+    }
+    let mut builder = table.scan().select(order.iter().copied());
     if let Some(filter) = filter {
         builder = builder.with_filter(filter);
     }
-    Ok(builder.build()?.to_arrow().await?.try_collect().await?)
+    let batches: Vec<RecordBatch> = builder.build()?.to_arrow().await?.try_collect().await?;
+    let back: Vec<usize> = select.iter().filter_map(|n| order.iter().position(|o| o == n)).collect();
+    Ok(batches.iter().map(|b| b.project(&back)).collect::<Result<_, _>>()?)
 }
 
 /// The run's row: a scan with the row filter `runId = <run>`, cut to the rows whose `runId` column holds the run.

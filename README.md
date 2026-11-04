@@ -19,7 +19,7 @@ to reading tables that are updated with delete files. What each column means is 
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Iceberg Go | 0.7.0 | 2026-11-03 | ✅ | ✅ | ✅ | ✅ | ⚠️[^1] | ✅ | ⚠️[^1] | ⚠️[^1] | ✅ | ⚠️[^1] | ⚠️[^1] |
 | Iceberg Java | 1.12.0 | 2026-11-02 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Iceberg Rust | 0.11.0 | 2026-11-04 | ⚠️[^2] | ✅ | ✅ | ✅ | ✅ | ➖[^3] | ✅ | ✅ | ✅ | ✅ | ❌[^4] |
+| Iceberg Rust | 0.11.0 | 2026-11-04 | ⚠️[^2] | ✅ | ✅ | ✅ | ✅ | ➖[^3] | ✅ | ✅ | ✅ | ✅ | ⚠️[^4] |
 | PyIceberg | 0.12.0 | 2026-11-02 | ✅ | ✅ | ✅ | ➖[^5] | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### Engines
@@ -65,7 +65,7 @@ to reading tables that are updated with delete files. What each column means is 
 [^1]: Iceberg Go 0.7.0, Schema evolution, Decimal, Timestamps, Large values, Identifiers: needs the `filter-after-scan` workaround: a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving no row; the workaround plans the files with the filter, reads them without it and filters the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1.
 [^2]: Iceberg Rust 0.11.0, Login: needs the `tls` workaround: iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)
 [^3]: Iceberg Rust 0.11.0, Incremental read: Iceberg Rust scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)
-[^4]: Iceberg Rust 0.11.0, Identifiers: cdc_event.compat_Fixture returned 1 row(s) for the filter on the run's runId, but its runId column holds "reserved word value", so the scan returns values under other columns' names
+[^4]: Iceberg Rust 0.11.0, Identifiers: needs the `schema-order` workaround: Iceberg Rust relabels the selected columns by position (RecordBatchTransformer::compare_schemas) when a Parquet field name differs from its Iceberg name, as Iceberg Java writes dash-name as dash_x2Dname, so a selection in another order than the file's returns values under other columns' names; the workaround selects the columns in the table's order. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-rust-fixes/pull/1.
 [^5]: PyIceberg 0.12.0, Latest tables: PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210).
 [^6]: Apache DataFusion 54.1.0, Login: needs the `tls` workaround: iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)
 [^7]: Apache DataFusion 54.1.0, Incremental read: iceberg-rust, which iceberg-datafusion is built on, scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)

@@ -23,8 +23,9 @@
       "status": "ok"
     },
     "identifiers": {
-      "note": "cdc_event.compat_Fixture returned 1 row(s) for the filter on the run's runId, but its runId column holds \"reserved word value\", so the scan returns values under other columns' names",
-      "status": "fail"
+      "note": "Iceberg Rust relabels the selected columns by position (RecordBatchTransformer::compare_schemas) when a Parquet field name differs from its Iceberg name, as Iceberg Java writes dash-name as dash_x2Dname, so a selection in another order than the file's returns values under other columns' names; the workaround selects the columns in the table's order. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-rust-fixes/pull/1.",
+      "status": "warn",
+      "workaround": "schema-order"
     },
     "incremental-read": {
       "note": "Iceberg Rust scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)",
