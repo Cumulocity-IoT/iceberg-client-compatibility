@@ -103,6 +103,9 @@ to reading tables that are updated with delete files. What each column means is 
 The latest version of each client is re-tested every week. Older versions keep their last result and its date,
 and are not re-tested.
 
+AWS services that read Iceberg tables only through the AWS Glue Data Catalog, such as Amazon Athena and Amazon
+Redshift, are not in the table. [`aws/`](aws) records what Glue catalog federation does with this lake.
+
 ## Connecting a client
 
 Each folder in [`clients/`](clients) holds an example for that client. The tests run the same connection code, so
