@@ -1,6 +1,7 @@
-# The columns of the compatibility table, in display order. A column shows only once a result carries it,
-# so the later-phase columns stay hidden until a client reports them. `meaning` is shown to readers below the
-# table; it says what a working cell means for them, then how it is tested where that is not obvious.
+# The columns of the compatibility table, in display order. A column shows in a section only once a result of
+# that section carries it, so the later-phase columns stay hidden until a client reports them. `meaning` is shown
+# to readers below the table; it says what a working cell means for them, then how it is tested where that is not
+# obvious.
 
 [[column]]
 id = "catalog-login"

@@ -35,10 +35,6 @@
     "identifiers": {
       "status": "ok"
     },
-    "views": {
-      "status": "na",
-      "note": "Iceberg Java loads the view metadata (dialects DremioSQL, spark, trino, starrocks) but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec)."
-    },
     "decimal": {
       "status": "ok",
       "data": {

@@ -32,8 +32,6 @@ import org.apache.iceberg.expressions.Expressions;
 import org.apache.iceberg.formats.FormatModelRegistry;
 import org.apache.iceberg.io.CloseableIterable;
 import org.apache.iceberg.rest.RESTCatalog;
-import org.apache.iceberg.view.SQLViewRepresentation;
-import org.apache.iceberg.view.View;
 
 /** The checks of clients/CONTRACT.md: Checks <plan.json> <out.json>. */
 public class Checks {
@@ -63,7 +61,6 @@ public class Checks {
       checks.put("cdc-tables", run(catalog, Checks::cdcTables, true));
       checks.put("latest-tables", run(catalog, Checks::latestTables, true));
       checks.put("identifiers", run(catalog, onRunRow(Checks::identifiers), true));
-      checks.put("views", run(catalog, Checks::views, false));
       checks.put("decimal", run(catalog, onRunRow(Checks::decimal), true));
       TimeZone zone = TimeZone.getDefault();
       TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
@@ -78,7 +75,7 @@ public class Checks {
       checks.put("incremental-read", run(catalog, Checks::incrementalRead, true));
     } catch (Exception e) {
       checks.put("catalog-login", fail(e));
-      for (String id : List.of("s3", "cdc-tables", "latest-tables", "identifiers", "views", "decimal", "timestamps",
+      for (String id : List.of("s3", "cdc-tables", "latest-tables", "identifiers", "decimal", "timestamps",
           "nesting", "large-values", "schema-evolution", "incremental-read")) {
         checks.put(id, result("inconclusive", "The catalog login failed.", null));
       }
@@ -397,16 +394,6 @@ public class Checks {
         ? result("ok", null, data)
         : result("fail", "Expected the one row with runId " + runId() + ", got " + runIds.size() + " rows with runIds "
             + runIds.subList(0, Math.min(5, runIds.size())) + ".", data);
-  }
-
-  static Map<String, Object> views(RESTCatalog catalog) {
-    View view = catalog.loadView(id("view", "view"));
-    List<String> dialects = view.currentVersion().representations().stream()
-        .map(r -> ((SQLViewRepresentation) r).dialect())
-        .toList();
-    return result("na", "Iceberg Java loads the view metadata (dialects " + String.join(", ", dialects)
-        + ") but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec).",
-        null);
   }
 
   static TableIdentifier id(String key, String name) {

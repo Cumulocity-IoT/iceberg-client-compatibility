@@ -29,10 +29,6 @@
     "identifiers": {
       "status": "ok"
     },
-    "views": {
-      "status": "na",
-      "note": "PyIceberg loads a view's metadata and SQL text but has no engine to run it (py.iceberg.apache.org/api/#load-a-view)."
-    },
     "decimal": {
       "status": "ok"
     },

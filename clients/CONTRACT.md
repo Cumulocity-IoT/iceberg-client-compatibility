@@ -73,6 +73,9 @@ clients.
 | `latest-tables` | On the latest table: `rows` = count of rows, `ids` = count of distinct `id` | `rows = ids` and both above 0 |
 | `views` | On the view and on its base table (the measurement table): count rows with `source = S` in the window | both counts are equal and above 0 |
 
+The `views` check is for engines and products only. A client library has no SQL engine to run a view, and
+loading the view metadata says nothing a reader needs, so a library does not report it.
+
 ## Checks on the fixture data
 
 The harness posts a fixture event for every run and waits until it is in the lake before any client runs. The

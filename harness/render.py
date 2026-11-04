@@ -55,7 +55,8 @@ def render(columns, clients, results):
             continue
         rows.sort(key=lambda r: version_key(r["version"]), reverse=True)
         rows.sort(key=lambda r: clients[r["client"]]["name"].lower())
-        header = ["Client", "Version", "Tested"] + [c["title"] for c in used]
+        shown = [c for c in used if any(c["id"] in r["checks"] for r in rows)]
+        header = ["Client", "Version", "Tested"] + [c["title"] for c in shown]
         lines += [f"### {heading}", "", "| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
         for r in rows:
             client = clients[r["client"]]
@@ -64,13 +65,13 @@ def render(columns, clients, results):
             # The cells that need the same workaround share one footnote, with the note of the first of them;
             # cells without a workaround share one when their notes are the same.
             groups = {}
-            for c in used:
+            for c in shown:
                 check = r["checks"].get(c["id"], {})
                 key = ("workaround", check["workaround"]) if check.get("workaround") else ("note", check.get("note"))
                 if key[1]:
                     groups.setdefault(key, {"titles": [], "note": check.get("note")})["titles"].append(c["title"])
             refs = {}
-            for c in used:
+            for c in shown:
                 check = r["checks"].get(c["id"])
                 if check is None:
                     cells.append("")

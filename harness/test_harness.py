@@ -44,9 +44,19 @@ class RenderTest(unittest.TestCase):
         self.assertIn("| Latest tables | Reads the latest tables. |", lines)
         self.assertIn("| PyIceberg | 0.12.0 | 2026-11-09 | ✅ | ❌[^1] |", lines)
         self.assertIn("| PyIceberg | 0.11.1 | 2026-11-02, not re-tested | ✅ |  |", lines)
-        self.assertIn("| Apache DataFusion | 53.1.0 | 2026-11-09 | ⚠️[^2] |  |", lines)
+        self.assertIn("| Apache DataFusion | 53.1.0 | 2026-11-09 | ⚠️[^2] |", lines)  # its section carries only Login
         self.assertIn("[^1]: PyIceberg 0.12.0, Latest tables: raises on equality deletes", lines)
         self.assertIn("[^2]: Apache DataFusion 53.1.0, Login: needs the `token-refresh` workaround", lines)
+
+    def test_each_section_shows_the_columns_its_results_carry(self):
+        table = render(COLUMNS, CLIENTS, [
+            result("pyiceberg", "0.12.0", "2026-11-09", **{"catalog-login": {"status": "ok"}}),
+            result("datafusion", "53.1.0", "2026-11-09", **{"catalog-login": {"status": "ok"}, "views": {"status": "ok"}}),
+        ])
+        lines = table.splitlines()
+        self.assertIn("| Client | Version | Tested | Login |", lines[:lines.index("### Engines")])
+        self.assertIn("| Client | Version | Tested | Login | Views |", lines[lines.index("### Engines"):])
+        self.assertEqual(1, lines.count("| Views | Runs the views. |"))
 
     def test_cells_with_the_same_workaround_share_a_footnote(self):
         checks = {"catalog-login": {"status": "warn", "workaround": "tls", "note": "first"},

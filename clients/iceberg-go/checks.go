@@ -25,7 +25,7 @@ import (
 	"github.com/apache/iceberg-go/table"
 )
 
-type ref struct{ Namespace, Table, Column, View, Source string }
+type ref struct{ Namespace, Table, Column, Source string }
 
 type plan struct {
 	Window                    struct{ From, Boundary, To string }
@@ -91,7 +91,7 @@ type check struct {
 
 var checks = []check{
 	{"catalog-login", catalogLogin}, {"s3", s3}, {"cdc-tables", cdcTables}, {"latest-tables", latestTables},
-	{"identifiers", identifiers}, {"views", views}, {"decimal", decimals}, {"timestamps", timestamps},
+	{"identifiers", identifiers}, {"decimal", decimals}, {"timestamps", timestamps},
 	{"nesting", nesting}, {"large-values", largeValues}, {"schema-evolution", schemaEvolution},
 	{"incremental-read", incrementalRead},
 }
@@ -422,19 +422,6 @@ func latestTables(ctx context.Context, cat *rest.Catalog, p *plan) (result, erro
 			count(recs), len(ids)), data), nil
 	}
 	return status("ok", "", data), nil
-}
-
-func views(ctx context.Context, cat *rest.Catalog, p *plan) (result, error) {
-	v, err := cat.LoadView(ctx, catalog.ToIdentifier(p.View.Namespace, p.View.View))
-	if err != nil {
-		return nil, err
-	}
-	var dialects []string
-	for _, r := range v.CurrentVersion().Representations {
-		dialects = append(dialects, r.Dialect)
-	}
-	return status("na", "Iceberg Go loads the view metadata (dialects "+strings.Join(dialects, ", ")+
-		") but has no SQL engine to run it; the view spec leaves that to engines (iceberg.apache.org/view-spec).", nil), nil
 }
 
 // ---- checks on the fixture data

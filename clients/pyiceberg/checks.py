@@ -202,14 +202,8 @@ def incremental_read(catalog, plan):
     return {"status": "ok", "data": data}
 
 
-def views(catalog, plan):
-    v = plan["view"]
-    catalog.load_view((v["namespace"], v["view"]))
-    return {"status": "na", "note": "PyIceberg loads a view's metadata and SQL text but has no engine to run it (py.iceberg.apache.org/api/#load-a-view)."}
-
-
 CHECKS = {"catalog-login": catalog_login, "s3": s3, "cdc-tables": cdc_tables, "latest-tables": latest_tables,
-          "identifiers": identifiers, "views": views, "decimal": decimal, "timestamps": timestamps,
+          "identifiers": identifiers, "decimal": decimal, "timestamps": timestamps,
           "nesting": nesting, "large-values": large_values, "schema-evolution": schema_evolution,
           "incremental-read": incremental_read}
 
