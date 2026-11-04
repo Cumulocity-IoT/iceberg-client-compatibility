@@ -84,6 +84,7 @@ jobs:
             ~/.ivy2.5.2
             ~/.cargo/registry
             clients/datafusion/target
+            clients/iceberg-rust/target
           key: clients-${{ hashFiles('clients/*/pom.xml', 'clients/*/Cargo.lock', 'clients/*/*.py') }}
           restore-keys: clients-
       - name: Self-test of the harness

@@ -1,0 +1,65 @@
+{
+  "build": "iceberg 0.11.0, iceberg-catalog-rest 0.11.0, iceberg-storage-opendal 0.11.0, opendal 0.58.2, parquet 58.4.1, reqwest 0.12.28",
+  "checks": {
+    "catalog-login": {
+      "data": {
+        "namespaces": 15
+      },
+      "note": "iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)",
+      "status": "warn",
+      "workaround": "tls"
+    },
+    "cdc-tables": {
+      "data": {
+        "after": 51840,
+        "before": 51840,
+        "device": 34560,
+        "not_device": 69120,
+        "total": 103680
+      },
+      "status": "ok"
+    },
+    "decimal": {
+      "status": "ok"
+    },
+    "identifiers": {
+      "note": "cdc_event.compat_Fixture returned 1 row(s) for the filter on the run's runId, but its runId column holds \"reserved word value\", so the scan returns values under other columns' names",
+      "status": "fail"
+    },
+    "incremental-read": {
+      "note": "Iceberg Rust scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)",
+      "status": "na"
+    },
+    "large-values": {
+      "status": "ok"
+    },
+    "latest-tables": {
+      "data": {
+        "ids": 5002,
+        "rows": 5002
+      },
+      "status": "ok"
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "s3": {
+      "data": {
+        "rows": 5
+      },
+      "status": "ok"
+    },
+    "schema-evolution": {
+      "status": "ok"
+    },
+    "timestamps": {
+      "data": {
+        "value": "2026-11-02T10:11:12.345Z"
+      },
+      "status": "ok"
+    }
+  },
+  "client": "iceberg-rust",
+  "version": "0.11.0",
+  "date": "2026-11-04"
+}

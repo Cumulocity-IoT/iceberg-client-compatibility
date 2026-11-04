@@ -1,0 +1,4 @@
+name = "Iceberg Rust"
+section = "library"
+release = { crates = "iceberg" }
+pin = { match = '(?m)^iceberg[a-z-]* = (?:\{ version = )?"=([0-9][^"]*)"' }
