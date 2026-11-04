@@ -1,4 +1,5 @@
 name = "Apache Flink"
+url = "https://flink.apache.org"
 section = "engine"
 release = { pypi = "apache-flink" }
 pin = { match = 'apache-flink==([0-9][^"]*)' }

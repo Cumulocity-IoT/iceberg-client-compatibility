@@ -1,4 +1,5 @@
 name = "Iceberg Rust"
+url = "https://rust.iceberg.apache.org"
 section = "library"
 release = { crates = "iceberg" }
 pin = { match = '(?m)^iceberg[a-z-]* = (?:\{ version = )?"=([0-9][^"]*)"' }

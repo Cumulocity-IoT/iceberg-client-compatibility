@@ -1,4 +1,5 @@
 name = "DuckDB"
+url = "https://duckdb.org"
 section = "engine"
 release = { pypi = "duckdb" }
 pin = { match = 'duckdb==([0-9][^"]*)' }

@@ -1,4 +1,5 @@
 name = "Apache DataFusion"
+url = "https://datafusion.apache.org"
 section = "engine"
 release = { crates = "datafusion" }
 pin = { match = '(?m)^datafusion = "=([0-9][^"]*)"' }

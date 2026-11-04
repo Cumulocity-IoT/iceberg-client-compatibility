@@ -1,4 +1,5 @@
 name = "Apache Doris"
+url = "https://doris.apache.org"
 section = "engine"
 release = { dockerhub = "apache/doris", tag = 'fe-([0-9.]+)' }
 pin = { match = 'DORIS="([0-9.]+)"' }

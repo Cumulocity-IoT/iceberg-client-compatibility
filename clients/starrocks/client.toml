@@ -1,4 +1,5 @@
 name = "StarRocks"
+url = "https://www.starrocks.io"
 section = "engine"
 release = { dockerhub = "starrocks/allin1-ubuntu" }
 pin = { match = 'allin1-ubuntu:([0-9][0-9.]*[0-9])' }

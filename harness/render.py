@@ -40,6 +40,13 @@ def validate(columns, clients, results):
                 raise ValueError(f"{where}: {check} has unknown status {value.get('status')!r}")
 
 
+def footnote_key(check):
+    """What a cell's footnote is about: its workaround, else its note; None for a cell without either."""
+    if check.get("workaround"):
+        return ("workaround", check["workaround"])
+    return ("note", check["note"]) if check.get("note") else None
+
+
 def render(columns, clients, results):
     validate(columns, clients, results)
     used = [c for c in columns if any(c["id"] in r["checks"] for r in results)]
@@ -48,7 +55,7 @@ def render(columns, clients, results):
         if r["client"] not in latest or version_key(r["version"]) > version_key(latest[r["client"]]):
             latest[r["client"]] = r["version"]
 
-    notes, lines = [], []
+    notes, lines, refs = [], [], {}
     for section, heading in SECTIONS:
         rows = [r for r in results if clients[r["client"]]["section"] == section]
         if not rows:
@@ -56,37 +63,45 @@ def render(columns, clients, results):
         rows.sort(key=lambda r: version_key(r["version"]), reverse=True)
         rows.sort(key=lambda r: clients[r["client"]]["name"].lower())
         shown = [c for c in used if any(c["id"] in r["checks"] for r in rows)]
-        header = ["Client", "Version", "Tested"] + [c["title"] for c in shown]
-        lines += [f"### {heading}", "", "| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
+        cell_of = lambda r, c: tuple(r["checks"].get(c["id"], {}).get(k) for k in ("status", "workaround", "note"))
+        # An older version whose cells all equal those of the newer version listed above it adds nothing.
+        listed = []
         for r in rows:
-            client = clients[r["client"]]
-            tested = r["date"] if r["version"] == latest[r["client"]] else f"{r['date']}, not re-tested"
-            cells = [client["name"], r["version"], tested]
-            # The cells that need the same workaround share one footnote, with the note of the first of them;
-            # cells without a workaround share one when their notes are the same.
-            groups = {}
+            above = listed[-1] if listed and listed[-1]["client"] == r["client"] else None
+            if above is None or any(cell_of(above, c) != cell_of(r, c) for c in shown):
+                listed.append(r)
+        # A client's cells that need the same workaround share one footnote across its versions, with the note of
+        # the first of them; cells without a workaround share one when their notes are the same.
+        groups = {}
+        for r in listed:
             for c in shown:
                 check = r["checks"].get(c["id"], {})
-                key = ("workaround", check["workaround"]) if check.get("workaround") else ("note", check.get("note"))
-                if key[1]:
-                    groups.setdefault(key, {"titles": [], "note": check.get("note")})["titles"].append(c["title"])
-            refs = {}
+                if key := footnote_key(check):
+                    group = groups.setdefault((r["client"], key), {"versions": [], "titles": set(), "note": check.get("note")})
+                    group["versions"] += [r["version"]] if r["version"] not in group["versions"] else []
+                    group["titles"].add(c["title"])
+        header = ["Client", "Version", "Tested"] + [c["title"] for c in shown]
+        lines += [f"### {heading}", "", "| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
+        for r in listed:
+            client = clients[r["client"]]
+            tested = r["date"] if r["version"] == latest[r["client"]] else f"{r['date']}, not re-tested"
+            name = f"[{client['name']}]({client['url']})" if client.get("url") else client["name"]
+            cells = [name, r["version"], tested]
             for c in shown:
                 check = r["checks"].get(c["id"])
                 if check is None:
                     cells.append("")
                     continue
                 cell = ICONS[check["status"]]
-                workaround, note = check.get("workaround"), check.get("note")
-                key = ("workaround", workaround) if workaround else ("note", note)
-                if key[1]:
-                    if key not in refs:
-                        group = groups[key]
-                        text = (f"needs the `{workaround}` workaround" + (f": {group['note']}" if group["note"] else "")
-                                if workaround else note)
-                        notes.append(f"{client['name']} {r['version']}, {', '.join(group['titles'])}: {text}")
-                        refs[key] = len(notes)
-                    cell += f"[^{refs[key]}]"
+                if key := footnote_key(check):
+                    if (r["client"], key) not in refs:
+                        group = groups[(r["client"], key)]
+                        text = (f"needs the `{key[1]}` workaround" + (f": {group['note']}" if group["note"] else "")
+                                if key[0] == "workaround" else group["note"])
+                        titles = ", ".join(c["title"] for c in shown if c["title"] in group["titles"])
+                        notes.append(f"{client['name']} {', '.join(group['versions'])}, {titles}: {text}")
+                        refs[(r["client"], key)] = len(notes)
+                    cell += f"[^{refs[(r['client'], key)]}]"
                 cells.append(cell)
             lines.append("| " + " | ".join(cells) + " |")
         lines.append("")

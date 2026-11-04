@@ -74,6 +74,32 @@ class RenderTest(unittest.TestCase):
         self.assertIn("| ✅[^1] | ✅[^1] | ➖[^2] |", table)
         self.assertIn("[^1]: PyIceberg 1.0, Login, Latest tables: one setup", table)
 
+    def test_a_client_with_a_url_is_linked_by_name(self):
+        clients = {"datafusion": {"name": "Apache DataFusion", "section": "engine", "url": "https://datafusion.apache.org"}}
+        table = render(COLUMNS, clients, [result("datafusion", "54.1.0", "2026-11-09", **{"catalog-login": {"status": "ok"}})])
+        self.assertIn("| [Apache DataFusion](https://datafusion.apache.org) | 54.1.0 | 2026-11-09 | ✅ |", table)
+        self.assertNotIn("[^", table)
+
+    def test_an_older_version_with_the_same_cells_is_left_out(self):
+        tls = {"status": "warn", "workaround": "tls", "note": "no TLS backend"}
+        table = render(COLUMNS, CLIENTS, [
+            result("datafusion", "53.1.0", "2026-11-02", **{"catalog-login": tls, "latest-tables": {"status": "ok"}}),
+            result("datafusion", "54.1.0", "2026-11-09", **{"catalog-login": tls, "latest-tables": {"status": "ok"}}),
+        ])
+        self.assertIn("| Apache DataFusion | 54.1.0 | 2026-11-09 | ⚠️[^1] | ✅ |", table)
+        self.assertNotIn("53.1.0", table)
+
+    def test_versions_share_a_footnote_for_the_same_symptom(self):
+        tls = {"status": "warn", "workaround": "tls", "note": "no TLS backend"}
+        table = render(COLUMNS, CLIENTS, [
+            result("datafusion", "53.1.0", "2026-11-02", **{"catalog-login": tls, "latest-tables": {"status": "fail", "note": "old rows"}}),
+            result("datafusion", "54.1.0", "2026-11-09", **{"catalog-login": tls, "latest-tables": {"status": "ok"}}),
+        ])
+        self.assertIn("| Apache DataFusion | 54.1.0 | 2026-11-09 | ⚠️[^1] | ✅ |", table)
+        self.assertIn("| Apache DataFusion | 53.1.0 | 2026-11-02, not re-tested | ⚠️[^1] | ❌[^2] |", table)
+        self.assertIn("[^1]: Apache DataFusion 54.1.0, 53.1.0, Login: needs the `tls` workaround: no TLS backend", table)
+        self.assertIn("[^2]: Apache DataFusion 53.1.0, Latest tables: old rows", table)
+
     def test_unknown_status_is_rejected(self):
         with self.assertRaises(ValueError):
             render(COLUMNS, CLIENTS, [result("pyiceberg", "0.12.0", "2026-11-09", views={"status": "maybe"})])
