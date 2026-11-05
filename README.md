@@ -104,6 +104,8 @@ to reading tables that are updated with delete files. What each column means is 
 The latest version of each client is re-tested every week. Older versions keep their last result and its date,
 and are not re-tested; an older version is listed only where one of its cells differs from the newer version's.
 
+The table is for information only and is not a statement of support; see [Disclaimer](#disclaimer).
+
 ## Connecting a client
 
 Each folder in [`clients/`](clients) holds an example for that client. The tests run the same connection code, so
@@ -127,3 +129,22 @@ Copy `.env.example` to `.env` and fill it in; `.env` is ignored by git. The harn
 python -m unittest harness.test_harness   # self-test of the harness
 python -m harness.render                  # regenerate the table from results/
 ```
+
+## Disclaimer
+
+This compatibility information is for informational purposes only. It records the results of automated read
+tests that we run against a Cumulocity test tenant, for the client versions and on the dates shown in the table.
+
+It is not a commitment, warranty, or certification. Cumulocity does not guarantee that a listed client works with
+Cumulocity Streaming Lake Ingestion, that it keeps working with later releases of either, or that we test any
+particular client or version. Listing a client is not an endorsement of, partnership with, or statement of
+support for that product.
+
+The tests cover only the checks described under "What the columns mean". They do not cover other features,
+configurations, data, environments, performance, or scale, so a client can behave differently in your setup than
+it does here. A ✅ means that the check passed in the run on the date shown. Test a client in your own environment
+before you rely on it.
+
+Workarounds and example code are provided as is, without support.
+
+Product and company names are trademarks or registered trademarks of their respective owners.
