@@ -26,8 +26,8 @@
     "latest-tables": {
       "status": "na",
       "data": {
-        "equality_deletes": 212,
-        "position_deletes": 7944
+        "equality_deletes": 19,
+        "position_deletes": 768
       },
       "note": "Daft plans Iceberg reads with PyIceberg, which raises on equality delete files; Daft applies position deletes only (Eventual-Inc/Daft#2458, equality deletes blocked by PyIceberg)."
     },
@@ -65,5 +65,5 @@
       "note": "Daft's read_iceberg reads one snapshot, branch or tag and has no snapshot-range read (Eventual-Inc/Daft#4139, open)."
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-09"
 }

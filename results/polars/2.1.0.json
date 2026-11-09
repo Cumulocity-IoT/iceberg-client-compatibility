@@ -53,13 +53,9 @@
       "status": "ok"
     },
     "incremental-read": {
-      "status": "ok",
-      "data": {
-        "from": "6509314465971582187",
-        "to": "8782628566666137816",
-        "rows": 1
-      }
+      "status": "inconclusive",
+      "note": "The fixture table has no snapshot before 2026-11-09T06:32:50.772573+00:00 or no append after it."
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-09"
 }

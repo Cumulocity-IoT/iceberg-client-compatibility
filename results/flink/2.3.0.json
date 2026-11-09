@@ -59,17 +59,13 @@
       "status": "ok"
     },
     "incremental-read": {
-      "status": "ok",
-      "data": {
-        "start": 6509314465971582187,
-        "end": 8782628566666137816,
-        "rows": 1
-      }
+      "status": "inconclusive",
+      "note": "The fixture table has no snapshot before the fixture was posted, or no append after it."
     },
     "timestamps": {
       "status": "fail",
       "note": "collect() raises a PickleException on TIMESTAMP_LTZ values (FLINK-38418), and to_pandas() returns 2026-11-02T10:11:12.345+05:30 for the instant 2026-11-02T10:11:12.345Z."
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-09"
 }

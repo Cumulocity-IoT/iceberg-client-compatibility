@@ -90,15 +90,9 @@
       "note": "Without it: TABLE_NOT_FOUND: line 1:28: Table 'lake.cdc_event.compat_fixture' does not exist"
     },
     "incremental-read": {
-      "status": "warn",
-      "data": {
-        "start_snapshot": 1362924555434530964,
-        "end_snapshot": 1770607626136220207,
-        "rows": 1
-      },
-      "workaround": "case-insensitive-names",
-      "note": "Without it: TABLE_NOT_FOUND: line 1:50: Table 'lake.cdc_event.\"compat_fixture$snapshots\"' does not exist"
+      "status": "inconclusive",
+      "note": "With the case-insensitive-names switch: The table has no snapshot before the fixture was posted, or no append after it."
     }
   },
-  "date": "2026-11-03"
+  "date": "2026-11-09"
 }

@@ -30,8 +30,8 @@
       "data": {
         "rows": 5002,
         "ids": 5002,
-        "position_delete_files": 32,
-        "equality_delete_files": 31
+        "position_delete_files": 34,
+        "equality_delete_files": 33
       }
     },
     "identifiers": {
@@ -74,5 +74,5 @@
       "note": "StarRocks SQL reads an Iceberg table at one snapshot only (VERSION AS OF, TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel)."
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-09"
 }

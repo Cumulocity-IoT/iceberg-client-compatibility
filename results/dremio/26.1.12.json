@@ -12,95 +12,45 @@
       "note": "A Dremio data source was provisioned with the OAuth client credential and credential vending."
     },
     "cdc-tables": {
-      "status": "ok",
-      "data": {
-        "total": 103680,
-        "device": 34560,
-        "not_device": 69120,
-        "before": 51840,
-        "after": 51840
-      }
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "latest-tables": {
-      "status": "ok",
-      "data": {
-        "rows": 5002,
-        "ids": 5002
-      }
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "identifiers": {
-      "status": "ok",
-      "data": {
-        "escaped_rows": 1,
-        "names": {
-          "camelCaseName": "camel",
-          "dash-name": "dash",
-          "dot_x002Ename": "dot",
-          "value": "reserved word value",
-          "select": "reserved word select"
-        }
-      }
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "views": {
-      "status": "ok",
-      "data": {
-        "view": 34560,
-        "table": 34560
-      }
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "decimal": {
-      "status": "ok",
-      "data": {
-        "decimalValue": "12345678901234567000.000000000",
-        "fractionDecimal": "0.123456789",
-        "tinyDecimal": "1E-9"
-      },
-      "note": "The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them."
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "timestamps": {
-      "status": "ok",
-      "data": {
-        "value": "2026-11-02 10:11:12.345",
-        "type": "TIMESTAMP"
-      },
-      "note": "The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC."
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "nesting": {
-      "status": "ok",
-      "data": {
-        "leaf": "deepest",
-        "list": [
-          {
-            "position": "1.000000000",
-            "label": "first"
-          },
-          {
-            "position": "2.000000000",
-            "label": "second"
-          }
-        ]
-      }
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "large-values": {
-      "status": "ok",
-      "data": {
-        "chars": 16384,
-        "bytes": 32768,
-        "only_char": true,
-        "binned": "\"deepest\""
-      }
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "schema-evolution": {
-      "status": "ok",
-      "data": {
-        "run": "run-20261102T193507Z",
-        "baseline": null
-      }
+      "status": "fail",
+      "note": "HTTPError: HTTP Error 400: Bad Request"
     },
     "incremental-read": {
       "status": "na",
       "note": "Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements)."
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-09"
 }

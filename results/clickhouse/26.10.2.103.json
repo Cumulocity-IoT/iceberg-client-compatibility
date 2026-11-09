@@ -70,5 +70,5 @@
       "note": "ClickHouse reads an Iceberg table at one snapshot (iceberg_snapshot_id, iceberg_timestamp_ms) and has no incremental read between snapshots (clickhouse.com/docs/engines/table-engines/integrations/iceberg)."
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-09"
 }

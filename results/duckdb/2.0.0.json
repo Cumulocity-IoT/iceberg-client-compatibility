@@ -65,9 +65,9 @@
       "status": "ok"
     },
     "incremental-read": {
-      "status": "na",
-      "note": "iceberg_scan reads one snapshot and has no start/end snapshot range (Binder Error: Invalid named parameter \"start_snapshot_id\" for function iceberg_scan); incremental reads are an open request (duckdb/duckdb-iceberg#1355)."
+      "status": "inconclusive",
+      "note": "The fixture table has no snapshot before or no append snapshot after the fixture was posted."
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-09"
 }

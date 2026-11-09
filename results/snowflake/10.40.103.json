@@ -1,0 +1,88 @@
+{
+  "client": "snowflake",
+  "version": "10.40.103",
+  "build": "Snowflake 10.40.103, snowflake-connector-python 5.1.0, catalog-linked database",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "schemas": 16
+      },
+      "note": "A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending."
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 5
+      },
+      "note": "A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending."
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "na",
+      "note": "A catalog-linked database does not read equality delete files (\"Row-level deletes with equality delete files aren't supported\", docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 091968 (0A000): Equality deletes on Iceberg tables are not supported."
+    },
+    "identifiers": {
+      "status": "ok",
+      "data": {
+        "labels": [
+          "camelCaseName",
+          "dash-name",
+          "dot_x002Ename",
+          "value",
+          "select"
+        ]
+      }
+    },
+    "views": {
+      "status": "na",
+      "note": "A catalog-linked database syncs the remote namespaces as schemas and their Iceberg tables, not Iceberg views (docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 002003 (42S02): SQL compilation error: Object 'T2027824580.\"view_measurement\".\"c8y_Temperature\"' does not exist or not authorized. Your primary role COMPAT_READER or one of your secondary roles must have at least one privilege granted on TABLE T2027824580.\"view_measurement\".\"c8y_Temperature\"."
+    },
+    "decimal": {
+      "status": "ok",
+      "data": {
+        "decimalValue": "12345678901234567000.000000000",
+        "fractionDecimal": "0.123456789",
+        "tinyDecimal": "0.000000001"
+      }
+    },
+    "timestamps": {
+      "status": "ok",
+      "data": {
+        "value": "2026-11-02 15:41:12.345000+05:30",
+        "type": "TIMESTAMP_LTZ"
+      }
+    },
+    "nesting": {
+      "status": "ok",
+      "data": {
+        "leaf": "deepest",
+        "elements": 2
+      }
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
+    },
+    "incremental-read": {
+      "status": "na",
+      "note": "Snowflake has no incremental read of an Iceberg table in a catalog-linked database; the CHANGES query fails with ProgrammingError: 091947 (0A000): CHANGES clause is not supported on external tables or Iceberg tables with an external catalog integration, saw 'compat_Fixture'."
+    }
+  },
+  "date": "2026-11-09"
+}

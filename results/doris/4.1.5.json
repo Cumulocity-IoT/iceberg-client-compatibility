@@ -30,7 +30,7 @@
       "data": {
         "rows": 5002,
         "ids": 5002,
-        "equality_delete_files": 104
+        "equality_delete_files": 26
       }
     },
     "identifiers": {
@@ -65,13 +65,8 @@
       }
     },
     "incremental-read": {
-      "status": "na",
-      "data": {
-        "from": "6509314465971582187",
-        "to": "8782628566666137816",
-        "rows": 8
-      },
-      "note": "Doris documents @incr incremental reads for Hudi and Paimon tables, not for Iceberg tables (doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog); on an Iceberg table Doris accepts @incr and ignores it, returning all 8 rows of the table."
+      "status": "inconclusive",
+      "note": "The fixture table has no snapshot before fixture.posted or no append after it."
     },
     "timestamps": {
       "status": "ok",
@@ -82,5 +77,5 @@
       "note": "The MySQL protocol carries TIMESTAMPTZ(6) as text in the session time zone, so the instant is read as epoch milliseconds through MILLISECOND_TIMESTAMP."
     }
   },
-  "date": "2026-11-02"
+  "date": "2026-11-09"
 }
