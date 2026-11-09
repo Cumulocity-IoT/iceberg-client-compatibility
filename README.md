@@ -111,6 +111,9 @@ and are not re-tested; an older version is listed only where one of its cells di
 
 The table is for information only and is not a statement of support; see [Disclaimer](#disclaimer).
 
+AWS services that read Iceberg tables only through the AWS Glue Data Catalog, such as Amazon Athena and Amazon
+Redshift, are not in the table. [`aws/`](aws) records what Glue catalog federation does with this lake.
+
 ## Connecting a client
 
 Each folder in [`clients/`](clients) holds an example for that client. The tests run the same connection code, so
