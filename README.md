@@ -109,6 +109,7 @@ to reading tables that are updated with delete files. What each column means is 
 
 The latest version of each client is re-tested every week. Older versions keep their last result and its date,
 and are not re-tested; an older version is listed only where one of its cells differs from the newer version's.
+A cell changes to a worse status only when a second run of the client, at the end of the same test run, confirms it.
 
 The table is for information only and is not a statement of support; see [Disclaimer](#disclaimer).
 
