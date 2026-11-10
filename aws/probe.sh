@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Reproduces the results in README.md, read only: what the federated catalog shows against what the catalog holds,
-# a mixed-case table by its exact name, and Athena queries on a lowercase and a mixed-case table.
+# a mixed-case table by its exact name, and Athena queries on lowercase tables (their camelCase columns and equality
+# deletes, at the tables' current snapshots) and on a mixed-case table.
 set -euo pipefail
 . "$(dirname "$0")/env.sh"
 NAMESPACES=${PROBE_NAMESPACES:-cdc_alarm cdc_event cdc_measurement latest_inventory}
 MIXED_NAMESPACE=${PROBE_MIXED_NAMESPACE:-cdc_measurement}
 MIXED_TABLE=${PROBE_MIXED_TABLE:-c8y_Temperature}
-LOWER_TABLE=${PROBE_LOWER_TABLE:-cdc_alarm.alarm}
+LOWER_TABLE=${PROBE_LOWER_TABLE:-cdc_inventory.inventory}
 
 # The catalog itself, over its REST API; the token stays in this shell.
 TOKEN=$(curl -s "$CATALOG_TOKEN_URI" -d grant_type=client_credentials \
@@ -17,6 +18,11 @@ PREFIX=$(curl -s -H "Authorization: Bearer $TOKEN" "$CATALOG_URI/v1/config?wareh
 remote_tables() {
   curl -s -H "Authorization: Bearer $TOKEN" "$CATALOG_URI/v1/$PREFIX/namespaces/$1/tables?pageSize=1000" \
     | python3 -c 'import json, sys; print(" ".join(sorted(i["name"] for i in json.load(sys.stdin)["identifiers"])))'
+}
+# The current snapshot of namespace $1, table $2, so that Athena and any other engine can count the same data.
+snapshot() {
+  curl -s -H "Authorization: Bearer $TOKEN" "$CATALOG_URI/v1/$PREFIX/namespaces/$1/tables/$2" \
+    | python3 -c 'import json, sys; print(json.load(sys.stdin)["metadata"]["current-snapshot-id"])'
 }
 
 step "Namespaces of the federated catalog $ACCOUNT:$CATALOG"
@@ -46,7 +52,8 @@ athena() {
     sleep 2
   done
   if [ "$state" = SUCCEEDED ]; then
-    aws athena get-query-results --query-execution-id "$id" --query 'ResultSet.Rows[1].Data[0].VarCharValue' --output text
+    aws athena get-query-results --query-execution-id "$id" --query 'ResultSet.Rows[1].Data[].VarCharValue' \
+      --output text | tr '\t' ' '
   else
     echo "$state: $(aws athena get-query-execution --query-execution-id "$id" --query QueryExecution.Status.StateChangeReason --output text)"
   fi
@@ -54,6 +61,15 @@ athena() {
 
 step "Athena: SELECT count(*) FROM $LOWER_TABLE"
 athena "SELECT count(*) FROM $LOWER_TABLE"
+
+INVENTORY=$(snapshot cdc_inventory inventory)
+step "Athena: camelCase columns of cdc_inventory.inventory at snapshot $INVENTORY (rows, then non-null values)"
+athena "SELECT count(*), count(lastupdated), count(eventtype), count(creationtime), max(lastupdated)
+  FROM cdc_inventory.inventory FOR VERSION AS OF $INVENTORY"
+
+LATEST=$(snapshot latest_inventory inventory)
+step "Athena: equality deletes of latest_inventory.inventory at snapshot $LATEST (rows, then distinct ids)"
+athena "SELECT count(*), count(DISTINCT id) FROM latest_inventory.inventory FOR VERSION AS OF $LATEST"
 
 step "Athena: SELECT count(*) FROM $MIXED_NAMESPACE.\"$MIXED_TABLE\""
 athena "SELECT count(*) FROM $MIXED_NAMESPACE.\"$MIXED_TABLE\""
