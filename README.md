@@ -41,8 +41,8 @@ to reading tables that are updated with delete files. What each column means is 
 
 | Client | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| [Dremio Enterprise](https://www.dremio.com) | 26.1.12 | 2026-11-09 | ✅[^34] | ✅[^34] | ❌[^35] | ❌[^35] | ❌[^35] | ➖[^36] | ❌[^35] | ❌[^35] | ❌[^35] | ❌[^35] | ❌[^35] | ❌[^35] |
-| [Snowflake](https://www.snowflake.com) | 10.40.103 | 2026-11-09 | ✅[^37] | ✅[^37] | ✅ | ➖[^38] | ✅ | ➖[^39] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^40] |
+| [Dremio Enterprise](https://www.dremio.com) | 26.1.12 | 2026-11-10 | ✅[^34] | ✅[^34] | ✅ | ✅ | ✅ | ➖[^35] | ✅[^36] | ✅[^37] | ✅ | ✅ | ✅ | ✅ |
+| [Snowflake](https://www.snowflake.com) | 10.40.103 | 2026-11-09 | ✅[^38] | ✅[^38] | ✅ | ➖[^39] | ✅ | ➖[^40] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^41] |
 
 ### What the columns mean
 
@@ -95,12 +95,13 @@ to reading tables that are updated with delete files. What each column means is 
 [^32]: Trino 484, Incremental read: With the case-insensitive-names switch: The table has no snapshot before the fixture was posted, or no append after it.
 [^33]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set A fix is sketched in https://github.com/Cumulocity-IoT/trino-fixes/pull/1.
 [^34]: Dremio Enterprise 26.1.12, Login, S3: A Dremio data source was provisioned with the OAuth client credential and credential vending.
-[^35]: Dremio Enterprise 26.1.12, CDC tables, Latest tables, Schema evolution, Decimal, Timestamps, Nesting, Large values, Identifiers, Views: HTTPError: HTTP Error 400: Bad Request
-[^36]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
-[^37]: Snowflake 10.40.103, Login, S3: A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending.
-[^38]: Snowflake 10.40.103, Latest tables: A catalog-linked database does not read equality delete files ("Row-level deletes with equality delete files aren't supported", docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 091968 (0A000): Equality deletes on Iceberg tables are not supported.
-[^39]: Snowflake 10.40.103, Incremental read: Snowflake has no incremental read of an Iceberg table in a catalog-linked database; the CHANGES query fails with ProgrammingError: 091947 (0A000): CHANGES clause is not supported on external tables or Iceberg tables with an external catalog integration, saw 'compat_Fixture'.
-[^40]: Snowflake 10.40.103, Views: A catalog-linked database syncs the remote namespaces as schemas and their Iceberg tables, not Iceberg views (docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 002003 (42S02): SQL compilation error: Object 'T2027824580."view_measurement"."c8y_Temperature"' does not exist or not authorized. Your primary role COMPAT_READER or one of your secondary roles must have at least one privilege granted on TABLE T2027824580."view_measurement"."c8y_Temperature".
+[^35]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
+[^36]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
+[^37]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
+[^38]: Snowflake 10.40.103, Login, S3: A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending.
+[^39]: Snowflake 10.40.103, Latest tables: A catalog-linked database does not read equality delete files ("Row-level deletes with equality delete files aren't supported", docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 091968 (0A000): Equality deletes on Iceberg tables are not supported.
+[^40]: Snowflake 10.40.103, Incremental read: Snowflake has no incremental read of an Iceberg table in a catalog-linked database; the CHANGES query fails with ProgrammingError: 091947 (0A000): CHANGES clause is not supported on external tables or Iceberg tables with an external catalog integration, saw 'compat_Fixture'.
+[^41]: Snowflake 10.40.103, Views: A catalog-linked database syncs the remote namespaces as schemas and their Iceberg tables, not Iceberg views (docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 002003 (42S02): SQL compilation error: Object 'T2027824580."view_measurement"."c8y_Temperature"' does not exist or not authorized. Your primary role COMPAT_READER or one of your secondary roles must have at least one privilege granted on TABLE T2027824580."view_measurement"."c8y_Temperature".
 <!-- END GENERATED TABLE -->
 
 ✅ works · ⚠️ works with a workaround, see the footnote · ❌ fails · ➖ not supported by the client ·
