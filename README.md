@@ -51,6 +51,14 @@ catalog to reading tables that are updated with delete files. What each column m
 | [Dremio Enterprise](https://www.dremio.com) | [🔗](clients/dremio/example.py "Example for Dremio Enterprise") | 26.1.12 | 2026-11-10 | ✅[^34] | ✅[^34] | ✅ | ✅ | ✅ | ➖[^35] | ✅[^36] | ✅[^37] | ✅ | ✅ | ✅ | ✅ |
 | [Snowflake](https://www.snowflake.com) | [🔗](clients/snowflake/example.py "Example for Snowflake") | 10.40.103 | 2026-11-09 | ✅[^38] | ✅[^38] | ✅ | ➖[^39] | ✅ | ➖[^40] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^41] |
 
+### Spark services that copy into your platform
+
+These services run a Spark job in your account on a data platform. The job reads the lakehouse through the catalog and writes a copy, such as hourly averages per device, into the platform's storage, where the platform's SQL engine and business intelligence tools query it. The copy is as current as the job's last run, and your cloud provider bills the job's compute, storage, and network traffic. The platform chooses the Spark version and, unless the setup guide adds JAR files, the Iceberg version, so a result here can differ from the Apache Spark row under Engines. Each service's folder holds its setup guide, `README.md`, next to the example.
+
+| Client | Example | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views | Copy |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [Google Cloud Managed Service for Apache Spark](https://cloud.google.com/products/managed-service-for-apache-spark) | [🔗](clients/google-spark/example.py "Example for Google Cloud Managed Service for Apache Spark") | 2.3.43+iceberg.1.9.0 | 2026-11-12 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
 ### What the columns mean
 
 | Column | Meaning |
@@ -67,6 +75,7 @@ catalog to reading tables that are updated with delete files. What each column m
 | Large values | Reads strings of up to 32,768 bytes, binary values, and tables with many columns. |
 | Identifiers | Finds tables and columns under their exact names: camelCase, escaped special characters such as `compat_x002EEscaped`, dashes, and SQL reserved words. |
 | Views | Runs the views in the `view_*` namespaces, which turn nested fields into plain columns, and gets the same rows as from their base tables. |
+| Copy | Writes hourly averages of the measurement table into the platform's storage with the setup guide's job, and the platform's SQL engine reads back the same hours and measurement counts. |
 
 [^1]: Iceberg Go 0.7.0, Schema evolution, Decimal, Timestamps, Large values, Identifiers: needs the `filter-after-scan` workaround: a row filter combined with a projection that leaves out a list-of-structs column ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here giving no row; the workaround plans the files with the filter, reads them without it and filters the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1.
 [^2]: Iceberg Java 1.12.0, Incremental read: The fixture table has no snapshot before fixture.posted or no append after it.

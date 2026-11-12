@@ -1,0 +1,88 @@
+{
+  "client": "google-spark",
+  "version": "2.3.43+iceberg.1.9.0",
+  "build": "Spark 3.5.3, iceberg-spark-runtime-3.5_2.13-1.9.0.jar (commit f73689b), iceberg-aws-bundle-1.10.1.jar, Python 3.11.12",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "namespaces": 15
+      }
+    },
+    "s3": {
+      "status": "ok",
+      "data": {
+        "rows": 5
+      }
+    },
+    "cdc-tables": {
+      "status": "ok",
+      "data": {
+        "total": 103680,
+        "device": 34560,
+        "not_device": 69120,
+        "before": 51840,
+        "after": 51840
+      }
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5002,
+        "ids": 5002
+      }
+    },
+    "identifiers": {
+      "status": "ok",
+      "data": {
+        "columns": 5
+      }
+    },
+    "views": {
+      "status": "ok",
+      "data": {
+        "view": 34560,
+        "table": 34560
+      }
+    },
+    "decimal": {
+      "status": "ok"
+    },
+    "timestamps": {
+      "status": "ok"
+    },
+    "nesting": {
+      "status": "ok"
+    },
+    "large-values": {
+      "status": "ok",
+      "data": {
+        "chars": 16384,
+        "bytes": 32768
+      }
+    },
+    "schema-evolution": {
+      "status": "ok"
+    },
+    "incremental-read": {
+      "status": "ok",
+      "data": {
+        "from": "1870648030584939378",
+        "to": "2368850531162874219",
+        "rows": 1
+      }
+    },
+    "copy": {
+      "status": "ok",
+      "data": {
+        "hours": 144,
+        "samples": 103680,
+        "bigquery": {
+          "hours": 144,
+          "samples": 103680
+        }
+      }
+    }
+  },
+  "date": "2026-11-12"
+}
