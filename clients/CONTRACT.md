@@ -7,7 +7,7 @@ any client the same way.
 
 | File | Purpose |
 |---|---|
-| `client.toml` | Name, the project's website (`url`, linked from the name in the table), the path of the example in the folder (`example`, linked from the Example column), section (`library`, `engine`, `product`), where releases are published and where the version is pinned |
+| `client.toml` | Name, the project's website (`url`, linked from the name in the table), the path of the example in the folder (`example`, linked from the Example column), section (`library`, `engine`, `product`, `managed-spark`), where releases are published and where the version is pinned |
 | `example.*` | The snippet customers copy: connect with the catalog settings and read a few rows. Nothing else |
 | `run.sh` | Entry point: `clients/<id>/run.sh <plan.json> <out.json>`, run from the repository root |
 | checks (any name) | The checks below. They import or call the connection code of `example.*`, never a copy of it |
@@ -52,7 +52,8 @@ pin to the newest release that depends on it.
   harness, which posts it to Cumulocity like a device. Clients keep their default telemetry: Iceberg Java's
   scan-metrics reports go to the catalog's metrics endpoint, which Polaris 1.8 only logs (reporter `default`),
   so nothing reaches the catalog's database. If the catalog ever switches to a persisting reporter, turn the
-  reports off with `rest-metrics-reporting-enabled=false`.
+  reports off with `rest-metrics-reporting-enabled=false`. A Spark service in the section `managed-spark` writes
+  only to its platform; see [Spark services that copy into your platform](#spark-services-that-copy-into-your-platform).
 * **No secrets in output.** Never print or write tokens, secrets or vended credentials, not even in error text you
   pass on; the harness scrubs `out.json` again, but logs it cannot.
 * **Vended credentials only.** Configure no storage keys and no region, except as the named `s3-region`
@@ -68,6 +69,41 @@ pin to the newest release that depends on it.
 * **Pin what decides the result.** Pin the client and every library that reads the data (for example pyarrow)
   to exact versions, and name them in `build`.
 
+## Spark services that copy into your platform
+
+A client in the section `managed-spark` is the managed Spark service of a data platform. Its job reads the lake
+through the catalog, as the Apache Spark client does, and writes a copy into the platform's storage, where the
+platform's SQL engine queries it. These rules add to the rules above:
+
+* **The same checks.** The test job ships `clients/spark/checks.py` and `harness/redact.py` to the platform and calls
+  `run_checks(spark, plan, secret)` in the service's Spark session, so a cell differs from the Apache Spark row only
+  where the service differs. `run.sh` submits the job with the platform's command-line tool, waits for it, and
+  fetches `out.json` from cloud storage or the job's output. It passes the platform's CI identity to that tool in
+  settings that `harness/env.sh` leaves alone.
+* **Files.** Besides `example.*`, which connects and reads with the service's session and secret store, the folder
+  holds two files. `gold.*` is the job that customers copy; it imports the connection code of `example.*`.
+  `README.md` is the setup guide, with every step from the platform's identity to the query on the copy. The check
+  on the copy comes with the first service.
+* **Writes go to the platform only.** The job writes its copy into a namespace or schema reserved for the tests, and
+  replaces it on every run. It never writes to Cumulocity, the catalog, or the lake.
+* **The platform's plumbing is standard configuration.** The steps of the setup guide that set up identity, secret,
+  network egress, Iceberg JAR files, and the target table are configuration, never workarounds. A setting that a
+  named switch covers, such as the region, stays a workaround. A run with an Iceberg version other than the
+  platform's own gets a version of its own in the results.
+* **Record what the platform decides.** Pin what you can choose, such as the runtime line or release label and the
+  JAR files you add. Declare no `release` or `pin` in `client.toml`. Record the rest in `version` and `build`.
+  `version` is the runtime's exact version followed by the Iceberg version that actually loaded
+  (`IcebergBuild.version()`), such as `2.3.43+iceberg.1.9.2`, so that a new Iceberg version under the same runtime
+  gets a new result. `build` names the JAR file that Iceberg loaded from.
+* **Secrets from the secret store.** The job reads the catalog credential from the platform's secret store, never
+  from a job argument or a property that the platform logs. Each platform gets a catalog principal of its own, so
+  you can revoke one without touching the others. The job's identity has no access to the lake's bucket, so a
+  passing S3 cell shows that the job read with the catalog's vended credentials.
+* **Bounded time.** `run.sh` sets a time limit on the platform side, so a job that hangs ends there. A run without
+  client names leaves these clients out; they run in a workflow of their own, which shares the `fixtures`
+  concurrency group with the weekly run, so the time limit also bounds how long one platform can hold up the next
+  run.
+
 ## Checks (no fixtures needed)
 
 The plan names the tables, the device (`source`) and a past time window `[from, to)` with a month `boundary`
@@ -82,8 +118,8 @@ clients.
 | `latest-tables` | On the latest table: `rows` = count of rows, `ids` = count of distinct `id` | `rows = ids` and both above 0 |
 | `views` | On the view and on its base table (the measurement table): count rows with `source = S` in the window | both counts are equal and above 0 |
 
-The `views` check is for engines and products only. A client library has no SQL engine to run a view, and
-loading the view metadata says nothing a reader needs, so a library does not report it.
+The `views` check is for engines, products, and Spark services only. A client library has no SQL engine to run a
+view, and loading the view metadata says nothing a reader needs, so a library does not report it.
 
 ## Checks on the fixture data
 

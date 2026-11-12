@@ -1,7 +1,8 @@
 """Runs one compatibility run: python -m harness.run [client ...].
 
 Posts the run's fixture data, waits in the check before the clients until it is in the lake, runs the clients
-(all in clients/ without arguments) against one plan, and stores each result scrubbed and dated in
+(without arguments, all in clients/ except the Spark services of the section managed-spark, which run in a workflow
+of their own) against one plan, and stores each result scrubbed and dated in
 results/<client>/<version>.json. A failed check before the clients records nothing.
 
 A client that crashes, or whose result is worse in a column than its last recorded result, runs a second time after
@@ -19,6 +20,7 @@ import os
 import subprocess
 import sys
 import time
+import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -42,6 +44,12 @@ def load_env():
             if "=" in line and not line.lstrip().startswith("#"):
                 key, value = line.split("=", 1)
                 os.environ.setdefault(key.strip(), value.strip().strip('"'))
+
+
+def default_clients(root=ROOT):
+    """The clients of a run without arguments: every one with a run.sh, except the Spark services."""
+    return [p.parent.name for p in sorted((root / "clients").glob("*/run.sh"))
+            if tomllib.loads((p.parent / "client.toml").read_text()).get("section") != "managed-spark"]
 
 
 def preflight(plan_path, *flags):
@@ -103,7 +111,7 @@ def main(clients):
     if not preflight(plan_path):
         sys.exit("the check before the clients failed; nothing recorded")
 
-    clients = clients or sorted(p.parent.name for p in (ROOT / "clients").glob("*/run.sh"))
+    clients = clients or default_clients()
     results, ended = {}, {}
     for client in clients:
         result = run_client(client, plan_path, work / f"{client}.json")

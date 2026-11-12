@@ -8,8 +8,8 @@ from unittest import mock
 
 from harness.redact import redact
 from harness.releases import bump, depends_on, latest
-from harness.render import ROOT, load, render, version_key
-from harness.run import previous, regressions, unconfirmed
+from harness.render import ROOT, load, render, validate, version_key
+from harness.run import default_clients, previous, regressions, unconfirmed
 from harness.summary import changes
 
 COLUMNS = [
@@ -118,6 +118,38 @@ class RenderTest(unittest.TestCase):
     def test_unknown_status_is_rejected(self):
         with self.assertRaises(ValueError):
             render(COLUMNS, CLIENTS, [result("pyiceberg", "0.12.0", "2026-11-09", views={"status": "maybe"})])
+
+    def test_unknown_section_is_rejected_even_without_results(self):
+        clients = {**CLIENTS, "typo": {"name": "Typo", "section": "products"}}
+        with self.assertRaisesRegex(ValueError, "clients/typo/client.toml: unknown section 'products'"):
+            render(COLUMNS, clients, [result("pyiceberg", "0.12.0", "2026-11-09", **{"catalog-login": {"status": "ok"}})])
+
+    def test_spark_services_come_last_with_their_intro(self):
+        clients = {**CLIENTS, "dremio": {"name": "Dremio", "section": "product", "example": "example.py"},
+                   "google": {"name": "Google", "section": "managed-spark", "example": "example.py"}}
+        table = render(COLUMNS, clients, [
+            result("google", "2.3", "2026-11-09", **{"catalog-login": {"status": "ok"}}),
+            result("dremio", "26.1", "2026-11-09", **{"catalog-login": {"status": "ok"}}),
+        ])
+        lines = table.splitlines()
+        heading = lines.index("### Spark services that copy into your platform")
+        self.assertLess(lines.index("### Products"), heading)
+        self.assertTrue(lines[heading + 2].startswith("These services run a Spark job"))
+        self.assertEqual("| Client | Example | Version | Tested | Login |", lines[heading + 4])
+        self.assertIn('| Google | [🔗](clients/google/example.py "Example for Google") | 2.3 | 2026-11-09 | ✅ |', lines)
+
+    def test_the_repository_clients_and_results_are_valid(self):
+        validate(*load())  # fails the self-test, before fixtures are posted, instead of the publish step
+
+    def test_a_run_without_arguments_leaves_out_the_spark_services(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for client, section in [("duckdb", "engine"), ("google", "managed-spark"), ("dremio", "product")]:
+                folder = Path(tmp, "clients", client)
+                folder.mkdir(parents=True)
+                (folder / "client.toml").write_text(f'name = "{client}"\nsection = "{section}"\n')
+                (folder / "run.sh").write_text("")
+            Path(tmp, "clients", "spare").mkdir()  # no run.sh, no client
+            self.assertEqual(["dremio", "duckdb"], default_clients(Path(tmp)))
 
 
 class PlanTest(unittest.TestCase):

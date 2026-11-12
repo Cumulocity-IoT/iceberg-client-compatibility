@@ -9,7 +9,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BEGIN = "<!-- BEGIN GENERATED TABLE -->"
 END = "<!-- END GENERATED TABLE -->"
-SECTIONS = [("library", "Client libraries"), ("engine", "Engines"), ("product", "Products")]
+# (section, heading, intro): a section with no results is left out, its intro with it.
+SECTIONS = [
+    ("library", "Client libraries", None),
+    ("engine", "Engines", None),
+    ("product", "Products", None),
+    ("managed-spark", "Spark services that copy into your platform",
+     "These services run a Spark job in your account on a data platform. The job reads the lake through the catalog "
+     "and writes a copy, such as hourly averages per device, into the platform's storage, where the platform's SQL "
+     "engine and business intelligence tools query it. The copy is as current as the job's last run, and your cloud "
+     "provider bills the job's compute, storage, and network traffic. The platform chooses the Spark version and, "
+     "unless the setup guide adds JAR files, the Iceberg version, so a result here can differ from the Apache Spark "
+     "row under Engines."),
+]
 ICONS = {"ok": "✅", "warn": "⚠️", "fail": "❌", "na": "➖", "inconclusive": "❔"}
 
 
@@ -28,7 +40,10 @@ def load(root=ROOT):
 
 
 def validate(columns, clients, results):
+    sections = {s for s, _, _ in SECTIONS}
     for client, config in clients.items():
+        if config.get("section") not in sections:
+            raise ValueError(f"clients/{client}/client.toml: unknown section {config.get('section')!r}")
         if not config.get("example"):
             raise ValueError(f"clients/{client}/client.toml: no example")
     known = {c["id"] for c in columns}
@@ -59,7 +74,7 @@ def render(columns, clients, results):
             latest[r["client"]] = r["version"]
 
     notes, lines, refs = [], [], {}
-    for section, heading in SECTIONS:
+    for section, heading, intro in SECTIONS:
         rows = [r for r in results if clients[r["client"]]["section"] == section]
         if not rows:
             continue
@@ -84,7 +99,8 @@ def render(columns, clients, results):
                     group["versions"] += [r["version"]] if r["version"] not in group["versions"] else []
                     group["titles"].add(c["title"])
         header = ["Client", "Example", "Version", "Tested"] + [c["title"] for c in shown]
-        lines += [f"### {heading}", "", "| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
+        lines += [f"### {heading}", ""] + ([intro, ""] if intro else [])
+        lines += ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
         for r in listed:
             client = clients[r["client"]]
             current = r["version"] == latest[r["client"]]

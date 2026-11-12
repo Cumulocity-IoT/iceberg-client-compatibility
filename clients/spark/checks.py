@@ -10,34 +10,33 @@ import sys
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
-sys.path[:0] = [os.path.dirname(os.path.abspath(__file__)), os.getcwd()]
+HERE = os.path.dirname(os.path.abspath(__file__))
+# The repository root, for harness.redact; a managed Spark service's job ships harness/redact.py with this file.
+sys.path.append(os.path.dirname(os.path.dirname(HERE)))
 
-import pyspark  # noqa: E402
-from example import ICEBERG, spark_session  # noqa: E402
 from harness.redact import redact  # noqa: E402
 
 
-def scrub(text):
-    secret = os.environ.get("CATALOG_CREDENTIAL", "")
+def scrub(text, secret):
     for value in [secret, *secret.split(":")]:
         if len(value) >= 4:
             text = text.replace(value, "REDACTED")
     return redact(text)
 
 
-def error_note(e):
-    return scrub(" ".join(str(e).split())[:400])
+def error_note(e, secret):
+    return scrub(" ".join(str(e).split())[:400], secret)
 
 
 def name(*parts):
     return "c8y." + ".".join(f"`{p}`" for p in parts)
 
 
-def main(plan_path, out_path):
-    with open(plan_path) as f:
-        plan = json.load(f)
-    spark = spark_session({"spark.ui.enabled": "false"})
-    spark.sparkContext.setLogLevel("ERROR")
+def run_checks(spark, plan, secret):
+    """Runs the checks in a session that has the catalog c8y and returns them by column id.
+
+    The session can be a local one or a managed Spark service's; `secret` is the catalog credential to keep out of notes.
+    """
 
     def count(sql):
         return spark.sql(sql).collect()[0][0]
@@ -131,8 +130,12 @@ def main(plan_path, out_path):
 
     def timestamps():
         t = ex["timestamp"]
+        zone = spark.conf.get("spark.sql.session.timeZone")
         spark.conf.set("spark.sql.session.timeZone", "Asia/Kolkata")
-        _, row = run_row(f"unix_millis(`{t['column']}`)")
+        try:
+            _, row = run_row(f"unix_millis(`{t['column']}`)")
+        finally:  # a job that goes on to write in the same session keeps its own time zone
+            spark.conf.set("spark.sql.session.timeZone", zone)
         instant = datetime.fromisoformat(t["value"].replace("Z", "+00:00"))
         expected = (instant - datetime(1970, 1, 1, tzinfo=timezone.utc)) // timedelta(milliseconds=1)
         if row[0] != expected:
@@ -224,9 +227,23 @@ def main(plan_path, out_path):
         try:
             checks[check_id] = check()
         except Exception as e:  # a failing check must not stop the others
-            checks[check_id] = {"status": "fail", "note": error_note(e)}
+            checks[check_id] = {"status": "fail", "note": error_note(e, secret)}
         print(check_id, checks[check_id]["status"], file=sys.stderr)
+    return checks
 
+
+def main(plan_path, out_path):
+    # The local session's code, imported here so that a managed Spark service's job, with an example.py of its own,
+    # can import run_checks without it.
+    sys.path.insert(0, HERE)
+    import pyspark
+    from example import ICEBERG, spark_session
+
+    with open(plan_path) as f:
+        plan = json.load(f)
+    spark = spark_session({"spark.ui.enabled": "false"})
+    spark.sparkContext.setLogLevel("ERROR")
+    checks = run_checks(spark, plan, os.environ.get("CATALOG_CREDENTIAL", ""))
     java = spark.sparkContext._jvm.java.lang.System.getProperty("java.version")
     out = {
         "client": "spark",
