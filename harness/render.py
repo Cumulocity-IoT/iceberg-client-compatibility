@@ -44,6 +44,8 @@ def validate(columns, clients, results):
     for client, config in clients.items():
         if config.get("section") not in sections:
             raise ValueError(f"clients/{client}/client.toml: unknown section {config.get('section')!r}")
+        if not config.get("example"):
+            raise ValueError(f"clients/{client}/client.toml: no example")
     known = {c["id"] for c in columns}
     for r in results:
         where = f"results/{r.get('client')}/{r.get('version')}.json"
@@ -96,14 +98,17 @@ def render(columns, clients, results):
                     group = groups.setdefault((r["client"], key), {"versions": [], "titles": set(), "note": check.get("note")})
                     group["versions"] += [r["version"]] if r["version"] not in group["versions"] else []
                     group["titles"].add(c["title"])
-        header = ["Client", "Version", "Tested"] + [c["title"] for c in shown]
+        header = ["Client", "Example", "Version", "Tested"] + [c["title"] for c in shown]
         lines += [f"### {heading}", ""] + ([intro, ""] if intro else [])
         lines += ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
         for r in listed:
             client = clients[r["client"]]
-            tested = r["date"] if r["version"] == latest[r["client"]] else f"{r['date']}, not re-tested"
+            current = r["version"] == latest[r["client"]]
+            tested = r["date"] if current else f"{r['date']}, not re-tested"
             name = f"[{client['name']}]({client['url']})" if client.get("url") else client["name"]
-            cells = [name, r["version"], tested]
+            # The example pins the latest version, so only that version's row links to it.
+            example = f'[🔗](clients/{r["client"]}/{client["example"]} "Example for {client["name"]}")' if current else ""
+            cells = [name, example, r["version"], tested]
             for c in shown:
                 check = r["checks"].get(c["id"])
                 if check is None:

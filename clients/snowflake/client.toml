@@ -1,3 +1,4 @@
 name = "Snowflake"
 url = "https://www.snowflake.com"
+example = "example.py"
 section = "product"

@@ -1,5 +1,6 @@
 name = "Iceberg Java"
 url = "https://iceberg.apache.org"
+example = "src/main/java/Example.java"
 section = "library"
 release = { maven = "org.apache.iceberg:iceberg-core" }
 pin = { match = '<iceberg.version>([^<]+)</iceberg.version>' }

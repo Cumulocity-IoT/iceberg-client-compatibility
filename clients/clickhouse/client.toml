@@ -1,5 +1,6 @@
 name = "ClickHouse"
 url = "https://clickhouse.com"
+example = "example.py"
 section = "engine"
 # Release tags are v<version>-stable and v<version>-lts, with a four-part version (year.month.patch.build); only
 # the -stable tags count, and the pin holds the bare version without the v and the suffix.

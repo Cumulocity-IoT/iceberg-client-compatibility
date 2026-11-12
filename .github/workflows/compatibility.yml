@@ -49,6 +49,11 @@ jobs:
       SNOWFLAKE_DATABASE: ${{ vars.SNOWFLAKE_DATABASE }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The branch as it is now: a re-run then builds on the results its first attempt published, instead of
+          # starting from the commit of that attempt, whose push the branch would reject. A re-run keeps the
+          # workflow file of its first attempt, so a run that started before this file changed needs Run workflow.
+          ref: ${{ github.ref }}
       - name: Free disk space for the engine images
         # StarRocks and Doris unpack to about 10 GB; the runner's preinstalled SDKs we do not use take more than that.
         run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL && df -h /
@@ -100,10 +105,14 @@ jobs:
         if: always()
         run: |
           python3 -m harness.summary
-          python3 -m harness.render
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md
           git diff --cached --quiet && exit 0
           git commit -m "chore: [noissue] - results of run ${{ github.run_id }}"
-          git push
+          # A merge during the run moves the branch: put the results on top of it first, and render the table from
+          # what is there then, so that a merge that changed the table cannot conflict with it.
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          python3 -m harness.render
+          git add README.md
+          git diff --cached --quiet || git commit --amend --no-edit
+          git push origin "HEAD:$GITHUB_REF_NAME"

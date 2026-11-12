@@ -1,5 +1,6 @@
 name = "Apache Spark"
 url = "https://spark.apache.org"
+example = "example.py"
 section = "engine"
 release = { pypi = "pyspark" }
 pin = { match = 'pyspark==([0-9][^"]*)' }

@@ -11,6 +11,7 @@ https://datahub.<domain>:9447), DREMIO_USER, DREMIO_PASSWORD and C8Y_TENANT.
 import json
 import os
 import time
+import urllib.error
 import urllib.request
 from decimal import Decimal
 
@@ -24,9 +25,18 @@ def _request(path, body=None, auth=True):
     if auth:
         headers["Authorization"] = token()
     request = urllib.request.Request(BASE + path, data=None if body is None else json.dumps(body).encode(), headers=headers)
-    with urllib.request.urlopen(request, timeout=60) as response:
-        # Dremio writes decimal(38,9) as exact JSON number literals; a float would round them.
-        return json.load(response, parse_float=Decimal)
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            # Dremio writes decimal(38,9) as exact JSON number literals; a float would round them.
+            return json.load(response, parse_float=Decimal)
+    except urllib.error.HTTPError as error:
+        # Dremio states why it rejected a request in the body's errorMessage; the status line alone does not.
+        detail = error.read().decode(errors="replace")
+        try:
+            detail = json.loads(detail).get("errorMessage") or detail
+        except (ValueError, AttributeError):
+            pass
+        raise RuntimeError(f"HTTP {error.code} on {path.split('?')[0]}: {' '.join(str(detail).split())[:300]}") from None
 
 
 def token():

@@ -67,7 +67,7 @@ meaning = "Reads only the rows appended since a given snapshot, skipping compact
 id = "decimal"
 group = "Types"
 title = "Decimal"
-meaning = "Returns numbers, which the lake stores as `decimal(38,9)`, exactly, without rounding them through floating point."
+meaning = "Returns numbers, which the lakehouse stores as `decimal(38,9)`, exactly, without rounding them through floating point."
 
 [[column]]
 id = "timestamps"

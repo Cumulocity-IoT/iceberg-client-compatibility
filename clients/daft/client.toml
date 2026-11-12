@@ -1,5 +1,6 @@
 name = "Daft"
 url = "https://www.daft.ai"
+example = "example.py"
 section = "engine"
 release = { pypi = "daft" }
 pin = { match = 'daft==([0-9][^"]*)' }

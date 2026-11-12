@@ -1,5 +1,6 @@
 name = "Polars"
 url = "https://pola.rs"
+example = "example.py"
 section = "engine"
 release = { pypi = "polars" }
 pin = { match = 'polars\[iceberg\]==([0-9][^"]*)' }

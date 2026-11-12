@@ -1,5 +1,6 @@
 name = "PyIceberg"
 url = "https://py.iceberg.apache.org"
+example = "example.py"
 section = "library"
 release = { pypi = "pyiceberg" }
 pin = { match = 'pyiceberg\[pyarrow\]==([0-9][^"]*)' }

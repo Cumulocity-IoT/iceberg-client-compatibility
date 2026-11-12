@@ -7,7 +7,7 @@ any client the same way.
 
 | File | Purpose |
 |---|---|
-| `client.toml` | Name, the project's website (`url`, linked from the name in the table), section (`library`, `engine`, `product`, `managed-spark`), where releases are published and where the version is pinned |
+| `client.toml` | Name, the project's website (`url`, linked from the name in the table), the path of the example in the folder (`example`, linked from the Example column), section (`library`, `engine`, `product`, `managed-spark`), where releases are published and where the version is pinned |
 | `example.*` | The snippet customers copy: connect with the catalog settings and read a few rows. Nothing else |
 | `run.sh` | Entry point: `clients/<id>/run.sh <plan.json> <out.json>`, run from the repository root |
 | checks (any name) | The checks below. They import or call the connection code of `example.*`, never a copy of it |
@@ -174,3 +174,9 @@ Status values:
 `version` is the version of the row's client, `build` everything else that decides the result. `note` is one
 factual sentence for the footnote. `data` carries the counts, so the harness can compare clients; it is not
 shown in the table.
+
+## Wording
+
+Call what Cumulocity Streaming Lake Ingestion writes the *lakehouse*, not the lake: structured Iceberg tables behind
+a catalog. The README uses the term. Other text and identifiers, such as the catalog name `lake` in the examples,
+change when they are edited for another reason.
