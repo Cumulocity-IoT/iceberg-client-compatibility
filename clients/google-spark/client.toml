@@ -1,0 +1,4 @@
+name = "Google Cloud Managed Service for Apache Spark"
+url = "https://cloud.google.com/products/managed-service-for-apache-spark"
+example = "example.py"
+section = "managed-spark"

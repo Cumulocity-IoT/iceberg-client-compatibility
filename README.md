@@ -11,7 +11,8 @@ your tenant:
 
 The table below is generated from test runs against a Cumulocity tenant. Each run connects the way a customer
 does: through the tenant's Iceberg catalog, with a read-only catalog principal and storage credentials that the
-catalog vends. The tests only read; Streaming Lake Ingestion is a managed lakehouse.
+catalog vends. The tests only read the lakehouse; Streaming Lake Ingestion is a managed lakehouse. The Spark
+services write a copy, but only into their platform's own storage.
 
 Each column of the table is one thing your client has to handle to read this lakehouse, from logging in to the
 catalog to reading tables that are updated with delete files. What each column means is listed below the table.
@@ -145,7 +146,7 @@ python -m harness.render                  # regenerate the table from results/
 
 ## Disclaimer
 
-This compatibility information is for informational purposes only. It records the results of automated read
+This compatibility information is for informational purposes only. It records the results of automated
 tests that we run against a Cumulocity test tenant, for the client versions and on the dates shown in the table.
 
 It is not a commitment, warranty, or certification. Cumulocity does not guarantee that a listed client works with

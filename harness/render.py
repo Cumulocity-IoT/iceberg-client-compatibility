@@ -15,12 +15,12 @@ SECTIONS = [
     ("engine", "Engines", None),
     ("product", "Products", None),
     ("managed-spark", "Spark services that copy into your platform",
-     "These services run a Spark job in your account on a data platform. The job reads the lake through the catalog "
-     "and writes a copy, such as hourly averages per device, into the platform's storage, where the platform's SQL "
-     "engine and business intelligence tools query it. The copy is as current as the job's last run, and your cloud "
-     "provider bills the job's compute, storage, and network traffic. The platform chooses the Spark version and, "
-     "unless the setup guide adds JAR files, the Iceberg version, so a result here can differ from the Apache Spark "
-     "row under Engines."),
+     "These services run a Spark job in your account on a data platform. The job reads the lakehouse through the "
+     "catalog and writes a copy, such as hourly averages per device, into the platform's storage, where the "
+     "platform's SQL engine and business intelligence tools query it. The copy is as current as the job's last run, "
+     "and your cloud provider bills the job's compute, storage, and network traffic. The platform chooses the Spark "
+     "version and, unless the setup guide adds JAR files, the Iceberg version, so a result here can differ from the "
+     "Apache Spark row under Engines. Each service's folder holds its setup guide, `README.md`, next to the example."),
 ]
 ICONS = {"ok": "✅", "warn": "⚠️", "fail": "❌", "na": "➖", "inconclusive": "❔"}
 
