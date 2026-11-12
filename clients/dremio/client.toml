@@ -1,3 +1,4 @@
 name = "Dremio Enterprise"
 url = "https://www.dremio.com"
+example = "example.py"
 section = "product"

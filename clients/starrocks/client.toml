@@ -1,5 +1,6 @@
 name = "StarRocks"
 url = "https://www.starrocks.io"
+example = "example.py"
 section = "engine"
 release = { dockerhub = "starrocks/allin1-ubuntu" }
 pin = { match = 'allin1-ubuntu:([0-9][0-9.]*[0-9])' }

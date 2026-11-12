@@ -8,7 +8,7 @@ from unittest import mock
 
 from harness.redact import redact
 from harness.releases import bump, depends_on, latest
-from harness.render import render, version_key
+from harness.render import ROOT, load, render, version_key
 from harness.run import previous, regressions, unconfirmed
 from harness.summary import changes
 
@@ -18,9 +18,11 @@ COLUMNS = [
     {"id": "views", "title": "Views", "meaning": "Runs the views."},
 ]
 CLIENTS = {
-    "pyiceberg": {"name": "PyIceberg", "section": "library"},
-    "datafusion": {"name": "Apache DataFusion", "section": "engine"},
+    "pyiceberg": {"name": "PyIceberg", "section": "library", "example": "example.py"},
+    "datafusion": {"name": "Apache DataFusion", "section": "engine", "example": "src/example.rs"},
 }
+PY = '[🔗](clients/pyiceberg/example.py "Example for PyIceberg")'
+DF = '[🔗](clients/datafusion/src/example.rs "Example for Apache DataFusion")'
 
 
 def result(client, version, date, **checks):
@@ -49,9 +51,9 @@ class RenderTest(unittest.TestCase):
         self.assertLess(lines.index("### Client libraries"), lines.index("### Engines"))
         self.assertNotIn("Views", table)  # no result carries the column, so neither the table nor the meanings
         self.assertIn("| Latest tables | Reads the latest tables. |", lines)
-        self.assertIn("| PyIceberg | 0.12.0 | 2026-11-09 | ✅ | ❌[^1] |", lines)
-        self.assertIn("| PyIceberg | 0.11.1 | 2026-11-02, not re-tested | ✅ |  |", lines)
-        self.assertIn("| Apache DataFusion | 53.1.0 | 2026-11-09 | ⚠️[^2] |", lines)  # its section carries only Login
+        self.assertIn(f"| PyIceberg | {PY} | 0.12.0 | 2026-11-09 | ✅ | ❌[^1] |", lines)
+        self.assertIn("| PyIceberg |  | 0.11.1 | 2026-11-02, not re-tested | ✅ |  |", lines)  # the example is for the latest
+        self.assertIn(f"| Apache DataFusion | {DF} | 53.1.0 | 2026-11-09 | ⚠️[^2] |", lines)  # its section carries only Login
         self.assertIn("[^1]: PyIceberg 0.12.0, Latest tables: raises on equality deletes", lines)
         self.assertIn("[^2]: Apache DataFusion 53.1.0, Login: needs the `token-refresh` workaround", lines)
 
@@ -61,8 +63,8 @@ class RenderTest(unittest.TestCase):
             result("datafusion", "53.1.0", "2026-11-09", **{"catalog-login": {"status": "ok"}, "views": {"status": "ok"}}),
         ])
         lines = table.splitlines()
-        self.assertIn("| Client | Version | Tested | Login |", lines[:lines.index("### Engines")])
-        self.assertIn("| Client | Version | Tested | Login | Views |", lines[lines.index("### Engines"):])
+        self.assertIn("| Client | Example | Version | Tested | Login |", lines[:lines.index("### Engines")])
+        self.assertIn("| Client | Example | Version | Tested | Login | Views |", lines[lines.index("### Engines"):])
         self.assertEqual(1, lines.count("| Views | Runs the views. |"))
 
     def test_cells_with_the_same_workaround_share_a_footnote(self):
@@ -82,9 +84,10 @@ class RenderTest(unittest.TestCase):
         self.assertIn("[^1]: PyIceberg 1.0, Login, Latest tables: one setup", table)
 
     def test_a_client_with_a_url_is_linked_by_name(self):
-        clients = {"datafusion": {"name": "Apache DataFusion", "section": "engine", "url": "https://datafusion.apache.org"}}
+        clients = {"datafusion": {"name": "Apache DataFusion", "section": "engine", "url": "https://datafusion.apache.org",
+                                   "example": "src/example.rs"}}
         table = render(COLUMNS, clients, [result("datafusion", "54.1.0", "2026-11-09", **{"catalog-login": {"status": "ok"}})])
-        self.assertIn("| [Apache DataFusion](https://datafusion.apache.org) | 54.1.0 | 2026-11-09 | ✅ |", table)
+        self.assertIn(f"| [Apache DataFusion](https://datafusion.apache.org) | {DF} | 54.1.0 | 2026-11-09 | ✅ |", table)
         self.assertNotIn("[^", table)
 
     def test_an_older_version_with_the_same_cells_is_left_out(self):
@@ -93,7 +96,7 @@ class RenderTest(unittest.TestCase):
             result("datafusion", "53.1.0", "2026-11-02", **{"catalog-login": tls, "latest-tables": {"status": "ok"}}),
             result("datafusion", "54.1.0", "2026-11-09", **{"catalog-login": tls, "latest-tables": {"status": "ok"}}),
         ])
-        self.assertIn("| Apache DataFusion | 54.1.0 | 2026-11-09 | ⚠️[^1] | ✅ |", table)
+        self.assertIn(f"| Apache DataFusion | {DF} | 54.1.0 | 2026-11-09 | ⚠️[^1] | ✅ |", table)
         self.assertNotIn("53.1.0", table)
 
     def test_versions_share_a_footnote_for_the_same_symptom(self):
@@ -102,10 +105,15 @@ class RenderTest(unittest.TestCase):
             result("datafusion", "53.1.0", "2026-11-02", **{"catalog-login": tls, "latest-tables": {"status": "fail", "note": "old rows"}}),
             result("datafusion", "54.1.0", "2026-11-09", **{"catalog-login": tls, "latest-tables": {"status": "ok"}}),
         ])
-        self.assertIn("| Apache DataFusion | 54.1.0 | 2026-11-09 | ⚠️[^1] | ✅ |", table)
-        self.assertIn("| Apache DataFusion | 53.1.0 | 2026-11-02, not re-tested | ⚠️[^1] | ❌[^2] |", table)
+        self.assertIn(f"| Apache DataFusion | {DF} | 54.1.0 | 2026-11-09 | ⚠️[^1] | ✅ |", table)
+        self.assertIn("| Apache DataFusion |  | 53.1.0 | 2026-11-02, not re-tested | ⚠️[^1] | ❌[^2] |", table)
         self.assertIn("[^1]: Apache DataFusion 54.1.0, 53.1.0, Login: needs the `tls` workaround: no TLS backend", table)
         self.assertIn("[^2]: Apache DataFusion 53.1.0, Latest tables: old rows", table)
+
+    def test_every_client_names_an_example_that_exists(self):
+        _, clients, _ = load()
+        for name, client in clients.items():
+            self.assertTrue((ROOT / "clients" / name / client["example"]).is_file(), f"clients/{name}: no {client['example']}")
 
     def test_unknown_status_is_rejected(self):
         with self.assertRaises(ValueError):

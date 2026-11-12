@@ -1,5 +1,6 @@
 name = "Iceberg Go"
 url = "https://go.iceberg.apache.org"
+example = "example.go"
 section = "library"
 release = { github = "apache/iceberg-go" }
 pin = { match = '(?m)^\s*github\.com/apache/iceberg-go v([0-9][^\s]*)$' }
