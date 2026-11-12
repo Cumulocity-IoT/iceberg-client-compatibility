@@ -1,0 +1,81 @@
+name: Spark services run
+
+on:
+  schedule:
+    # Mondays, after the run of the other clients, which this run waits for in the fixtures group.
+    - cron: "5 9 * * 1"
+  workflow_dispatch:
+    inputs:
+      clients:
+        description: "Spark services to run, separated by spaces; empty runs all"
+        required: false
+        default: ""
+
+# Every run posts fixture data to the same test tenant; two at once would read each other's marker.
+concurrency:
+  group: fixtures
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write # workload identity federation with Google Cloud
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment: eu-latest-test
+    # Above the sum of the batches' time limits (30 minutes each, two runs per service) and the check before them.
+    timeout-minutes: 90
+    env:
+      CATALOG_URI: ${{ vars.CATALOG_URI }}
+      CATALOG_WAREHOUSE: ${{ vars.CATALOG_WAREHOUSE }}
+      CATALOG_TOKEN_URI: ${{ vars.CATALOG_TOKEN_URI }}
+      CATALOG_SCOPE: ${{ vars.CATALOG_SCOPE }}
+      CATALOG_CREDENTIAL: ${{ secrets.CATALOG_CREDENTIAL }}
+      C8Y_BASEURL: ${{ vars.C8Y_BASEURL }}
+      C8Y_TENANT: ${{ vars.C8Y_TENANT }}
+      C8Y_USER: ${{ vars.C8Y_USER }}
+      C8Y_PASSWORD: ${{ secrets.C8Y_PASSWORD }}
+      GCP_PROJECT: ${{ vars.GCP_PROJECT }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      GCP_STAGING_BUCKET: ${{ vars.GCP_STAGING_BUCKET }}
+      GCP_BIGLAKE_CATALOG: ${{ vars.GCP_BIGLAKE_CATALOG }}
+      GCP_NAMESPACE: ${{ vars.GCP_NAMESPACE }}
+      GCP_CATALOG_SECRET: ${{ vars.GCP_CATALOG_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The branch as it is now, as in the compatibility run.
+          ref: ${{ github.ref }}
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: harness/*.py
+      - name: Self-test of the harness
+        run: python3 -m unittest harness.test_harness
+      - name: Run the Spark services
+        run: |
+          clients="${{ inputs.clients }}"
+          [ -n "$clients" ] || clients=$(grep -l '^section = "managed-spark"' clients/*/client.toml | cut -d/ -f2)
+          python3 -m harness.run $clients
+      - name: Publish the results
+        if: always()
+        run: |
+          python3 -m harness.summary
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: [noissue] - results of run ${{ github.run_id }}"
+          # A merge during the run moves the branch: put the results on top of it first, and render the table from
+          # what is there then, so that a merge that changed the table cannot conflict with it.
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          python3 -m harness.render
+          git add README.md
+          git diff --cached --quiet || git commit --amend --no-edit
+          git push origin "HEAD:$GITHUB_REF_NAME"

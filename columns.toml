@@ -98,3 +98,9 @@ id = "views"
 group = "Views"
 title = "Views"
 meaning = "Runs the views in the `view_*` namespaces, which turn nested fields into plain columns, and gets the same rows as from their base tables."
+
+[[column]]
+id = "copy"
+group = "Copy"
+title = "Copy"
+meaning = "Writes hourly averages of the measurement table into the platform's storage with the setup guide's job, and the platform's SQL engine reads back the same hours and measurement counts."

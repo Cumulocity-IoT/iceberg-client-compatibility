@@ -82,8 +82,11 @@ platform's SQL engine queries it. These rules add to the rules above:
   settings that `harness/env.sh` leaves alone.
 * **Files.** Besides `example.*`, which connects and reads with the service's session and secret store, the folder
   holds two files. `gold.*` is the job that customers copy; it imports the connection code of `example.*`.
-  `README.md` is the setup guide, with every step from the platform's identity to the query on the copy. The check
-  on the copy comes with the first service.
+  `README.md` is the setup guide, with every step from the platform's identity to the query on the copy.
+* **The check on the copy.** The test job also reports the column `copy`. With the code of `gold.*`, it writes the
+  hourly statistics of the plan's measurement table in the window into the namespace reserved for the tests, then
+  queries the copy with the platform's SQL engine. It is `ok` when the engine counts the same hours and the same
+  number of measurements as the job wrote, and `inconclusive` when the window has no measurements.
 * **Writes go to the platform only.** The job writes its copy into a namespace or schema reserved for the tests, and
   replaces it on every run. It never writes to Cumulocity, the catalog, or the lake.
 * **The platform's plumbing is standard configuration.** The steps of the setup guide that set up identity, secret,
@@ -93,8 +96,9 @@ platform's SQL engine queries it. These rules add to the rules above:
 * **Record what the platform decides.** Pin what you can choose, such as the runtime line or release label and the
   JAR files you add. Declare no `release` or `pin` in `client.toml`. Record the rest in `version` and `build`.
   `version` is the runtime's exact version followed by the Iceberg version that actually loaded
-  (`IcebergBuild.version()`), such as `2.3.43+iceberg.1.9.2`, so that a new Iceberg version under the same runtime
-  gets a new result. `build` names the JAR file that Iceberg loaded from.
+  (`IcebergBuild.version()`, or the version in the name of its JAR file where the platform's build reports
+  `unspecified`), such as `2.3.43+iceberg.1.9.0`, so that a new Iceberg version under the same runtime gets a new
+  result. `build` names the JAR file that Iceberg loaded from and the commit it was built from.
 * **Secrets from the secret store.** The job reads the catalog credential from the platform's secret store, never
   from a job argument or a property that the platform logs. Each platform gets a catalog principal of its own, so
   you can revoke one without touching the others. The job's identity has no access to the lake's bucket, so a
