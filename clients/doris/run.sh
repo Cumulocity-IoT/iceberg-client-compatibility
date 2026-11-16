@@ -70,17 +70,25 @@ fi
 docker network create --subnet "$SUBNET.0/24" "$NET" >/dev/null
 
 # Memory stays under 5 GB in all: the images default to an 8 GB frontend heap and a backend sized to the host.
+# The images' JDK 17.0.2 cannot read the container's cgroup v2 limits on Docker 29 (ubuntu-26.04 runners): any
+# call of ManagementFactory.getOperatingSystemMXBean() raises a NullPointerException in CgroupV2Subsystem, and the
+# frontend's journal (BDB JE) makes that call when it starts. -XX:-UseContainerSupport skips reading the limits;
+# the heaps are set here, so nothing depends on them.
+NO_CONTAINER_SUPPORT='s/^JAVA_OPTS_FOR_JDK_17="/&-XX:-UseContainerSupport /'
 docker run -d --name "$FE" --network "$NET" --ip "$SUBNET.2" --memory 2g -p 127.0.0.1::9030 \
-  -e FE_SERVERS="fe1:$SUBNET.2:9010" -e FE_ID=1 --entrypoint bash "$FE_IMAGE" -c '
-    sed -i -E "s/-Xmx[0-9]+[mMgG]/-Xmx1280m/g; s/-Xms[0-9]+[mMgG]/-Xms512m/g" /opt/apache-doris/fe/conf/fe.conf
+  -e FE_SERVERS="fe1:$SUBNET.2:9010" -e FE_ID=1 -e NO_CONTAINER_SUPPORT="$NO_CONTAINER_SUPPORT" \
+  --entrypoint bash "$FE_IMAGE" -c '
+    sed -i -E "s/-Xmx[0-9]+[mMgG]/-Xmx1280m/g; s/-Xms[0-9]+[mMgG]/-Xms512m/g; $NO_CONTAINER_SUPPORT" \
+      /opt/apache-doris/fe/conf/fe.conf
     exec bash init_fe.sh' >/dev/null
 wait_for 240 "$FE" frontend sql "SHOW FRONTENDS"
 
 # The backend's entrypoint registers it with the frontend (ALTER SYSTEM ADD BACKEND) once that answers.
 docker run -d --name "$BE" --network "$NET" --ip "$SUBNET.3" --memory 3g \
-  -e FE_SERVERS="fe1:$SUBNET.2:9010" -e BE_ADDR="$SUBNET.3:9050" --entrypoint bash "$BE_IMAGE" -c '
+  -e FE_SERVERS="fe1:$SUBNET.2:9010" -e BE_ADDR="$SUBNET.3:9050" -e NO_CONTAINER_SUPPORT="$NO_CONTAINER_SUPPORT" \
+  --entrypoint bash "$BE_IMAGE" -c '
     conf=/opt/apache-doris/be/conf/be.conf
-    sed -i -E "s/-Xmx[0-9]+[mMgG]/-Xmx512m/g" "$conf"
+    sed -i -E "s/-Xmx[0-9]+[mMgG]/-Xmx512m/g; $NO_CONTAINER_SUPPORT" "$conf"
     echo "mem_limit = 2200M" >> "$conf"
     exec bash entry_point.sh' >/dev/null
 backend_alive() { sql 'SHOW BACKENDS\G' | grep -q 'Alive: true'; }
