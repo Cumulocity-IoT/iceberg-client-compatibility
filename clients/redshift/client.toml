@@ -1,0 +1,4 @@
+name = "Amazon Redshift"
+url = "https://aws.amazon.com/redshift/"
+example = "example.py"
+section = "product"

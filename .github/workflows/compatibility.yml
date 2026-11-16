@@ -22,6 +22,7 @@ concurrency:
 
 permissions:
   contents: write
+  id-token: write # OpenID Connect to AWS, for Amazon Athena and Amazon Redshift
 
 jobs:
   run:
@@ -99,8 +100,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 -m harness.releases --bump ${{ inputs.clients }}
+      - name: Log in to AWS for Athena and Redshift
+        id: aws
+        # Without the role, or when the login fails, only those two clients fail; the others still run.
+        if: vars.AWS_ROLE_ARN != ''
+        continue-on-error: true
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-duration-seconds: 7200 # past the second runs at the end of the run
+          # As outputs only, which the step below passes to aws/identity.sh under names of its own; harness/env.sh
+          # keeps the usual AWS variables away from every client.
+          output-credentials: true
+          output-env-credentials: false
       - name: Run the clients
         run: python3 -m harness.run ${{ inputs.clients }}
+        env:
+          PLATFORM_AWS_ACCESS_KEY_ID: ${{ steps.aws.outputs.aws-access-key-id }}
+          PLATFORM_AWS_SECRET_ACCESS_KEY: ${{ steps.aws.outputs.aws-secret-access-key }}
+          PLATFORM_AWS_SESSION_TOKEN: ${{ steps.aws.outputs.aws-session-token }}
+          PLATFORM_AWS_REGION: ${{ vars.AWS_REGION }}
       - name: Publish the results
         if: always()
         run: |
