@@ -20,7 +20,22 @@ trap cleanup EXIT
 cleanup # a stack left over by a killed run
 
 # Logs carry no secrets before the catalog is created; they still pass the redaction the results get.
-logs() { docker logs --tail 40 "$1" 2>&1 | python3 -c 'import sys; from harness.redact import redact; print(redact(sys.stdin.read()))'; }
+redacted() { python3 -c 'import sys; from harness.redact import redact; print(redact(sys.stdin.read()))'; }
+# The first exception, which the later ones often only refer to ("Could not initialize class"), and the last lines.
+logs() {
+  { docker logs "$1" 2>&1 | grep -m1 -B2 -A30 -E '(Exception|Error)(:|$)' || true; } | redacted
+  echo "..."
+  docker logs --tail 40 "$1" 2>&1 | redacted
+}
+# Whether the image's JDK can read the container's limits, which the frontend's journal (BDB JE) does first.
+jdk_probe() {
+  docker run --rm --memory 2g --entrypoint bash "$FE_IMAGE" -c '
+    echo "class Probe { public static void main(String[] a) {
+      System.out.println(java.lang.management.ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()); } }" >/tmp/Probe.java
+    java -version 2>&1 | head -1
+    for flag in -XX:+UseContainerSupport -XX:-UseContainerSupport; do echo "== Probe $flag"; java $flag /tmp/Probe.java 2>&1 | head -15; done
+    echo "== -XshowSettings:system"; java -XshowSettings:system -version 2>&1 | head -20' 2>&1 | redacted
+}
 wait_for() { # <seconds> <container to show on timeout> <description> <command...>
   local deadline=$((SECONDS + $1)) container=$2 what=$3
   shift 3
@@ -28,6 +43,7 @@ wait_for() { # <seconds> <container to show on timeout> <description> <command..
     if ((SECONDS > deadline)); then
       echo "doris: $what not ready after ${SECONDS}s" >&2
       logs "$container" >&2
+      if [ "$container" = "$FE" ]; then jdk_probe >&2; fi
       exit 1
     fi
     sleep 2
@@ -54,17 +70,25 @@ fi
 docker network create --subnet "$SUBNET.0/24" "$NET" >/dev/null
 
 # Memory stays under 5 GB in all: the images default to an 8 GB frontend heap and a backend sized to the host.
+# The images' JDK 17.0.2 cannot read the container's cgroup v2 limits on Docker 29 (ubuntu-26.04 runners): any
+# call of ManagementFactory.getOperatingSystemMXBean() raises a NullPointerException in CgroupV2Subsystem, and the
+# frontend's journal (BDB JE) makes that call when it starts. -XX:-UseContainerSupport skips reading the limits;
+# the heaps are set here, so nothing depends on them.
+NO_CONTAINER_SUPPORT='s/^JAVA_OPTS_FOR_JDK_17="/&-XX:-UseContainerSupport /'
 docker run -d --name "$FE" --network "$NET" --ip "$SUBNET.2" --memory 2g -p 127.0.0.1::9030 \
-  -e FE_SERVERS="fe1:$SUBNET.2:9010" -e FE_ID=1 --entrypoint bash "$FE_IMAGE" -c '
-    sed -i -E "s/-Xmx[0-9]+[mMgG]/-Xmx1280m/g; s/-Xms[0-9]+[mMgG]/-Xms512m/g" /opt/apache-doris/fe/conf/fe.conf
+  -e FE_SERVERS="fe1:$SUBNET.2:9010" -e FE_ID=1 -e NO_CONTAINER_SUPPORT="$NO_CONTAINER_SUPPORT" \
+  --entrypoint bash "$FE_IMAGE" -c '
+    sed -i -E "s/-Xmx[0-9]+[mMgG]/-Xmx1280m/g; s/-Xms[0-9]+[mMgG]/-Xms512m/g; $NO_CONTAINER_SUPPORT" \
+      /opt/apache-doris/fe/conf/fe.conf
     exec bash init_fe.sh' >/dev/null
 wait_for 240 "$FE" frontend sql "SHOW FRONTENDS"
 
 # The backend's entrypoint registers it with the frontend (ALTER SYSTEM ADD BACKEND) once that answers.
 docker run -d --name "$BE" --network "$NET" --ip "$SUBNET.3" --memory 3g \
-  -e FE_SERVERS="fe1:$SUBNET.2:9010" -e BE_ADDR="$SUBNET.3:9050" --entrypoint bash "$BE_IMAGE" -c '
+  -e FE_SERVERS="fe1:$SUBNET.2:9010" -e BE_ADDR="$SUBNET.3:9050" -e NO_CONTAINER_SUPPORT="$NO_CONTAINER_SUPPORT" \
+  --entrypoint bash "$BE_IMAGE" -c '
     conf=/opt/apache-doris/be/conf/be.conf
-    sed -i -E "s/-Xmx[0-9]+[mMgG]/-Xmx512m/g" "$conf"
+    sed -i -E "s/-Xmx[0-9]+[mMgG]/-Xmx512m/g; $NO_CONTAINER_SUPPORT" "$conf"
     echo "mem_limit = 2200M" >> "$conf"
     exec bash entry_point.sh' >/dev/null
 backend_alive() { sql 'SHOW BACKENDS\G' | grep -q 'Alive: true'; }
