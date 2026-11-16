@@ -30,8 +30,9 @@
     "incremental-read": {
       "data": {
         "added_records": "1",
+        "from": 2424176303353229952,
         "rows": 1,
-        "to": 6028529000317564471
+        "to": 5201353028175405150
       },
       "status": "ok"
     },
@@ -76,5 +77,5 @@
   },
   "client": "iceberg-go",
   "version": "0.7.0",
-  "date": "2026-11-09"
+  "date": "2026-11-16"
 }

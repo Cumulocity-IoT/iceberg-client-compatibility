@@ -4,7 +4,7 @@ set -euo pipefail
 . harness/env.sh
 
 # The release tag is v<version>-stable; the assets are a bare binary for macOS and a tarball for Linux.
-version="26.10.2.103"
+version="26.10.4.207"
 dir="$PWD/clients/clickhouse"
 export CLICKHOUSE="$dir/target/clickhouse-$version"
 if [ ! -x "$CLICKHOUSE" ]; then
