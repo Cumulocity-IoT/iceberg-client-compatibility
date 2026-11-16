@@ -48,8 +48,10 @@ catalog to reading tables that are updated with delete files. What each column m
 
 | Client | Example | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| [Dremio Enterprise](https://www.dremio.com) | [🔗](clients/dremio/example.py "Example for Dremio Enterprise") | 26.1.12 | 2026-11-16 | ✅[^28] | ✅[^28] | ✅ | ✅ | ✅ | ➖[^29] | ✅[^30] | ✅[^31] | ✅ | ✅ | ✅ | ✅ |
-| [Snowflake](https://www.snowflake.com) | [🔗](clients/snowflake/example.py "Example for Snowflake") | 10.42.101 | 2026-11-16 | ✅[^32] | ✅[^32] | ✅ | ➖[^33] | ✅ | ➖[^34] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^35] |
+| [Amazon Athena](https://aws.amazon.com/athena/) | [🔗](clients/athena/example.py "Example for Amazon Athena") | 3 | 2026-11-16 | ✅[^28] | ⚠️[^29] | ⚠️[^29] | ✅ | ⚠️[^29] | ➖[^30] | ⚠️[^29] | ⚠️[^29] | ⚠️[^29] | ⚠️[^29] | ❌[^31] | ➖[^32] |
+| [Amazon Redshift](https://aws.amazon.com/redshift/) | [🔗](clients/redshift/example.py "Example for Amazon Redshift") | 1.0.539508 | 2026-11-16 | ✅[^33] | ⚠️[^34] | ⚠️[^34] | ✅ | ⚠️[^34] | ➖[^35] | ⚠️[^34] | ⚠️[^34] | ⚠️[^34] | ❌[^36] | ❌[^37] | ➖[^38] |
+| [Dremio Enterprise](https://www.dremio.com) | [🔗](clients/dremio/example.py "Example for Dremio Enterprise") | 26.1.12 | 2026-11-16 | ✅[^39] | ✅[^39] | ✅ | ✅ | ✅ | ➖[^40] | ✅[^41] | ✅[^42] | ✅ | ✅ | ✅ | ✅ |
+| [Snowflake](https://www.snowflake.com) | [🔗](clients/snowflake/example.py "Example for Snowflake") | 10.42.101 | 2026-11-16 | ✅[^43] | ✅[^43] | ✅ | ➖[^44] | ✅ | ➖[^45] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^46] |
 
 ### Spark services that copy into your platform
 
@@ -104,14 +106,25 @@ These services run a Spark job in your account on a data platform. The job reads
 [^25]: Trino 484, Login: needs the `s3-region` workaround: Without it the catalog does not load and the server does not start: SdkClientException: Unable to load region from any of the providers in the chain DefaultAwsRegionProviderChain.
 [^26]: Trino 484, S3, CDC tables, Schema evolution, Incremental read, Decimal, Timestamps, Nesting, Large values, Identifiers: needs the `case-insensitive-names` workaround: Without it: TABLE_NOT_FOUND: line 1:15: Table 'lake.cdc_measurement.c8y_temperature' does not exist
 [^27]: Trino 484, Views: With the case-insensitive-names switch: INVALID_VIEW: line 1:22: Failed analyzing stored view 'lake_case_insensitive_names.view_measurement.c8y_temperature': line 10:6: Schema must be specified when session schema is not set A fix is sketched in https://github.com/Cumulocity-IoT/trino-fixes/pull/1.
-[^28]: Dremio Enterprise 26.1.12, Login, S3: A Dremio data source was provisioned with the OAuth client credential and credential vending.
-[^29]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
-[^30]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
-[^31]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
-[^32]: Snowflake 10.42.101, Login, S3: A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending.
-[^33]: Snowflake 10.42.101, Latest tables: A catalog-linked database does not read equality delete files ("Row-level deletes with equality delete files aren't supported", docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 091968 (0A000): Equality deletes on Iceberg tables are not supported.
-[^34]: Snowflake 10.42.101, Incremental read: Snowflake has no incremental read of an Iceberg table in a catalog-linked database; the CHANGES query fails with ProgrammingError: 091947 (0A000): CHANGES clause is not supported on external tables or Iceberg tables with an external catalog integration, saw 'compat_Fixture'.
-[^35]: Snowflake 10.42.101, Views: A catalog-linked database syncs the remote namespaces as schemas and their Iceberg tables, not Iceberg views (docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 002003 (42S02): SQL compilation error: Object 'T2027824580."view_measurement"."c8y_Temperature"' does not exist or not authorized. Your primary role COMPAT_READER or one of your secondary roles must have at least one privilege granted on TABLE T2027824580."view_measurement"."c8y_Temperature".
+[^28]: Amazon Athena 3, Login: An AWS Glue connection was provisioned with the OAuth client credential and CREDENTIAL_VENDING_MODE = SOURCE_VENDED, and a federated catalog on it.
+[^29]: Amazon Athena 3, S3, CDC tables, Schema evolution, Decimal, Timestamps, Nesting, Large values: needs the `lowercase-tables` workaround: The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:15: Table 't2027824580.cdc_measurement.c8y_temperature' does not exist
+[^30]: Amazon Athena 3, Incremental read: Athena SQL reads an Iceberg table at one snapshot (FOR VERSION AS OF, FOR TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.aws.amazon.com/athena/latest/ug/querying-iceberg-time-travel-and-version-travel-queries.html).
+[^31]: Amazon Athena 3, Identifiers: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:23: Table 't2027824580.cdc_event.compat_x002eescaped' does not exist
+[^32]: Amazon Athena 3, Views: AWS Glue catalog federation discovers "Iceberg tables in external catalogs" (docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html) and none of the catalog's views, not even those with lowercase names such as view_alarm.alarm; the query fails with TABLE_NOT_FOUND: line 1:22: Table 't2027824580.view_measurement.c8y_temperature' does not exist
+[^33]: Amazon Redshift 1.0.539508, Login: An AWS Glue connection was provisioned with the OAuth client credential and CREDENTIAL_VENDING_MODE = SOURCE_VENDED, a federated catalog on it, and external schemas on Glue resource links to its namespaces.
+[^34]: Amazon Redshift 1.0.539508, S3, CDC tables, Schema evolution, Decimal, Timestamps, Nesting: needs the `lowercase-tables` workaround: The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_measurement.c8y_temperature
+[^35]: Amazon Redshift 1.0.539508, Incremental read: Redshift reads an Iceberg table as of one point in time (AS OF TIMESTAMP) and has no query for the rows appended between two snapshots (docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html).
+[^36]: Amazon Redshift 1.0.539508, Large values: With the lowercase-tables switch: Expected 16384 chars and 32768 bytes of 'ä', got 8191 chars, 16382 bytes of ['ä']. Redshift reads an Iceberg string as varchar(16384) and truncates longer strings (docs.aws.amazon.com/redshift/latest/dg/querying-iceberg-supported-data-types.html).
+[^37]: Amazon Redshift 1.0.539508, Identifiers: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_event.compat_x002eescaped
+[^38]: Amazon Redshift 1.0.539508, Views: AWS Glue catalog federation discovers "Iceberg tables in external catalogs" (docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html) and none of the catalog's views, not even those with lowercase names such as view_alarm.alarm; the query fails with AwsClientException: EntityNotFoundException from glue - Table does not exist: view_measurement.c8y_temperature
+[^39]: Dremio Enterprise 26.1.12, Login, S3: A Dremio data source was provisioned with the OAuth client credential and credential vending.
+[^40]: Dremio Enterprise 26.1.12, Incremental read: Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause or table function for the rows appended between two snapshots (docs.dremio.com/current/reference/sql/commands/SELECT-statements).
+[^41]: Dremio Enterprise 26.1.12, Decimal: The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; a JSON parser that reads numbers as doubles rounds them.
+[^42]: Dremio Enterprise 26.1.12, Timestamps: The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC.
+[^43]: Snowflake 10.42.101, Login, S3: A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending.
+[^44]: Snowflake 10.42.101, Latest tables: A catalog-linked database does not read equality delete files ("Row-level deletes with equality delete files aren't supported", docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 091968 (0A000): Equality deletes on Iceberg tables are not supported.
+[^45]: Snowflake 10.42.101, Incremental read: Snowflake has no incremental read of an Iceberg table in a catalog-linked database; the CHANGES query fails with ProgrammingError: 091947 (0A000): CHANGES clause is not supported on external tables or Iceberg tables with an external catalog integration, saw 'compat_Fixture'.
+[^46]: Snowflake 10.42.101, Views: A catalog-linked database syncs the remote namespaces as schemas and their Iceberg tables, not Iceberg views (docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database); the query fails with ProgrammingError: 002003 (42S02): SQL compilation error: Object 'T2027824580."view_measurement"."c8y_Temperature"' does not exist or not authorized. Your primary role COMPAT_READER or one of your secondary roles must have at least one privilege granted on TABLE T2027824580."view_measurement"."c8y_Temperature".
 <!-- END GENERATED TABLE -->
 
 ✅ works · ⚠️ works with a workaround, see the footnote · ❌ fails · ➖ not supported by the client ·
@@ -123,8 +136,8 @@ A cell changes to a worse status only when a second run of the client, at the en
 
 The table is for information only and is not a statement of support; see [Disclaimer](#disclaimer).
 
-AWS services that read Iceberg tables only through the AWS Glue Data Catalog, such as Amazon Athena and Amazon
-Redshift, are not in the table. [`aws/`](aws) records what Glue catalog federation does with this lake.
+Amazon Athena and Amazon Redshift read the lakehouse through AWS Glue catalog federation, which [`aws/`](aws) sets up
+and describes.
 
 ## Connecting a client
 
