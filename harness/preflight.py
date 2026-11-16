@@ -40,12 +40,16 @@ def deletes_in_place(catalog, plan):
 
 
 def fixture_visible(catalog, plan):
+    """The run's row in the fixture table and in its lowercase twin, and a latest snapshot after the posting."""
     f = plan["fixture"]
-    rows = catalog.load_table((f["table"]["namespace"], f["table"]["table"])).scan(
-        row_filter=EqualTo("runId", f["run_id"]), selected_fields=("runId",)).to_arrow()
+    for table in (f["table"], f["lowercase"]):
+        rows = catalog.load_table((table["namespace"], table["table"])).scan(
+            row_filter=EqualTo("runId", f["run_id"]), selected_fields=("runId",)).to_arrow()
+        if rows.num_rows == 0:
+            return False
     latest = catalog.load_table((plan["latest"]["namespace"], plan["latest"]["table"]))
     posted_ms = int(datetime.fromisoformat(f["posted"]).timestamp() * 1000)
-    return rows.num_rows > 0 and any(s.timestamp_ms > posted_ms for s in latest.snapshots())
+    return any(s.timestamp_ms > posted_ms for s in latest.snapshots())
 
 
 def main(plan_path, after=False):
