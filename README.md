@@ -57,7 +57,7 @@ These services run a Spark job in your account on a data platform. The job reads
 
 | Client | Example | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views | Copy |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| [Google Cloud Managed Service for Apache Spark](https://cloud.google.com/products/managed-service-for-apache-spark) | [🔗](clients/google-spark/example.py "Example for Google Cloud Managed Service for Apache Spark") | 2.3.43+iceberg.1.9.0 | 2026-11-12 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [Google Cloud Managed Service for Apache Spark](https://cloud.google.com/products/managed-service-for-apache-spark) | [🔗](clients/google-spark/example.py "Example for Google Cloud Managed Service for Apache Spark") | 2.3.43+iceberg.1.9.0 | 2026-11-16 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### What the columns mean
 
