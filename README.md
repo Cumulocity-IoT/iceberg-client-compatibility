@@ -34,7 +34,7 @@ catalog to reading tables that are updated with delete files. What each column m
 | Client | Example | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | [Apache DataFusion](https://datafusion.apache.org) | [🔗](clients/datafusion/src/example.rs "Example for Apache DataFusion") | 54.1.0 | 2026-11-16 | ⚠️[^6] | ✅ | ✅ | ✅ | ✅ | ➖[^7] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^8] |
-| [Apache Doris](https://doris.apache.org) | [🔗](clients/doris/example.py "Example for Apache Doris") | 4.1.5 | 2026-11-09 | ✅ | ✅ | ✅ | ✅ | ✅ | ❔[^9] | ✅ | ✅[^10] | ✅ | ✅ | ✅ | ❌[^11] |
+| [Apache Doris](https://doris.apache.org) | [🔗](clients/doris/example.py "Example for Apache Doris") | 4.1.5 | 2026-11-16 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^9] | ✅ | ✅[^10] | ✅ | ✅ | ✅ | ❌[^11] |
 | [Apache Flink](https://flink.apache.org) | [🔗](clients/flink/example.py "Example for Apache Flink") | 2.3.0 | 2026-11-16 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌[^12] | ✅ | ✅ | ✅ | ❌[^13] |
 | [Apache Spark](https://spark.apache.org) | [🔗](clients/spark/example.py "Example for Apache Spark") | 4.1.4 | 2026-11-16 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | [ClickHouse](https://clickhouse.com) | [🔗](clients/clickhouse/example.py "Example for ClickHouse") | 26.10.4.207 | 2026-11-16 | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^14] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^15] |
@@ -85,7 +85,7 @@ These services run a Spark job in your account on a data platform. The job reads
 [^6]: Apache DataFusion 54.1.0, Login: needs the `tls` workaround: iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)
 [^7]: Apache DataFusion 54.1.0, Incremental read: iceberg-rust, which iceberg-datafusion is built on, scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)
 [^8]: Apache DataFusion 54.1.0, Views: iceberg-rust, which iceberg-datafusion is built on, has no Iceberg view support (apache/iceberg-rust#55)
-[^9]: Apache Doris 4.1.5, Incremental read: The fixture table has no snapshot before fixture.posted or no append after it.
+[^9]: Apache Doris 4.1.5, Incremental read: Doris documents @incr incremental reads for Hudi and Paimon tables, not for Iceberg tables (doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog); on an Iceberg table Doris accepts @incr and ignores it, returning all 31 rows of the table.
 [^10]: Apache Doris 4.1.5, Timestamps: The MySQL protocol carries TIMESTAMPTZ(6) as text in the session time zone, so the instant is read as epoch milliseconds through MILLISECOND_TIMESTAMP.
 [^11]: Apache Doris 4.1.5, Views: Doris 4.1.5 raises "Cannot get engine-name for view" because the view versions record no engine-name, which the Iceberg view spec makes optional; apache/doris#69829 (merged to master on 2026-11-02) loads such views.
 [^12]: Apache Flink 2.3.0, Timestamps: collect() raises a PickleException on TIMESTAMP_LTZ values (FLINK-38418), and to_pandas() returns 2026-11-02T10:11:12.345+05:30 for the instant 2026-11-02T10:11:12.345Z.
