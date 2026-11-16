@@ -20,7 +20,22 @@ trap cleanup EXIT
 cleanup # a stack left over by a killed run
 
 # Logs carry no secrets before the catalog is created; they still pass the redaction the results get.
-logs() { docker logs --tail 40 "$1" 2>&1 | python3 -c 'import sys; from harness.redact import redact; print(redact(sys.stdin.read()))'; }
+redacted() { python3 -c 'import sys; from harness.redact import redact; print(redact(sys.stdin.read()))'; }
+# The first exception, which the later ones often only refer to ("Could not initialize class"), and the last lines.
+logs() {
+  { docker logs "$1" 2>&1 | grep -m1 -B2 -A30 -E '(Exception|Error)(:|$)' || true; } | redacted
+  echo "..."
+  docker logs --tail 40 "$1" 2>&1 | redacted
+}
+# Whether the image's JDK can read the container's limits, which the frontend's journal (BDB JE) does first.
+jdk_probe() {
+  docker run --rm --memory 2g --entrypoint bash "$FE_IMAGE" -c '
+    echo "class Probe { public static void main(String[] a) {
+      System.out.println(java.lang.management.ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()); } }" >/tmp/Probe.java
+    java -version 2>&1 | head -1
+    for flag in -XX:+UseContainerSupport -XX:-UseContainerSupport; do echo "== Probe $flag"; java $flag /tmp/Probe.java 2>&1 | head -15; done
+    echo "== -XshowSettings:system"; java -XshowSettings:system -version 2>&1 | head -20' 2>&1 | redacted
+}
 wait_for() { # <seconds> <container to show on timeout> <description> <command...>
   local deadline=$((SECONDS + $1)) container=$2 what=$3
   shift 3
@@ -28,6 +43,7 @@ wait_for() { # <seconds> <container to show on timeout> <description> <command..
     if ((SECONDS > deadline)); then
       echo "doris: $what not ready after ${SECONDS}s" >&2
       logs "$container" >&2
+      if [ "$container" = "$FE" ]; then jdk_probe >&2; fi
       exit 1
     fi
     sleep 2
