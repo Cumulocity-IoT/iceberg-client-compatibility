@@ -18,9 +18,9 @@ that federation for the [compatibility table](../README.md#compatibility), whose
    namespace gets a Glue resource link there, and an external schema of the namespace's name on that link.
 5. An IAM role that the compatibility workflow on GitHub assumes through OpenID Connect.
 
-With `SOURCE_VENDED`, Athena and Redshift read the data with the catalog's vended credentials, so no identity in the
-AWS account needs access to the lakehouse's bucket. With `AWS_VENDED`, the default, Lake Formation reads the data
-with the role of step 1, which then needs a grant on the bucket.
+`SOURCE_VENDED` makes Athena and Redshift read the data with the catalog's vended credentials, so no identity in the
+AWS account needs access to the lakehouse's bucket. Without it, Lake Formation reads the data with the role of
+step 1 (`AWS_VENDED`), which has no such access.
 
 ## Names
 
@@ -50,17 +50,13 @@ All scripts read the catalog settings from the repository's `.env` and take the 
 |---|---|
 | `AWS_PROFILE` | the AWS account to set up in, with administrator rights and Lake Formation administration |
 | `AWS_REGION` | default `eu-central-1` |
-| `CREDENTIAL_VENDING_MODE` | `SOURCE_VENDED` (default) or `AWS_VENDED` |
-| `LAKE_LOCATION` | for `AWS_VENDED` only: the tenant's prefix of the lakehouse, `s3://<bucket>/<tenant>`, for the role's read access |
 | `GITHUB_REPO`, `GITHUB_ENVIRONMENT`, `GITHUB_SUBJECT_PREFIX` | the repository, the environment, and the repository's OpenID Connect subject prefix, whose workflow runs may assume the CI role; the defaults are those of this repository. `gh api repos/<repo>/actions/oidc/customization/sub` prints the prefix as `sub_claim_prefix` |
 
-* [`setup.sh`](setup.sh) creates everything above and skips what already exists; on an existing connection it
-  switches the credential vending mode. For `AWS_VENDED` it prints the bucket-policy statement that the lakehouse's
-  owner needs to add, and at the end the variables `AWS_ROLE_ARN` and `AWS_REGION` for the GitHub environment. Run it
-  with an administrator profile, because it changes permissions in the account.
-* [`probe.sh`](probe.sh) changes nothing. It compares what Glue federates with what the catalog holds, and queries
-  lowercase and mixed-case tables in Athena at the tables' current snapshots, whose IDs it prints so that another
-  engine can count the same data with `VERSION AS OF <snapshot>`.
+* [`setup.sh`](setup.sh) creates everything above and skips what already exists. At the end it prints the variables
+  `AWS_ROLE_ARN` and `AWS_REGION` for the GitHub environment. Run it with an administrator profile, because it
+  changes permissions in the account.
+* [`probe.sh`](probe.sh) changes nothing. It compares what Glue federates with what the catalog holds, and looks up
+  a mixed-case table by its exact name.
 * [`identity.sh`](identity.sh) gives the clients `athena` and `redshift` their AWS identity: in CI the workflow's role,
   on a developer machine the AWS CLI profile in `PLATFORM_AWS_PROFILE`, for example
   `PLATFORM_AWS_PROFILE=<profile> python -m harness.run athena redshift`.

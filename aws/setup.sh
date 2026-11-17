@@ -3,21 +3,6 @@
 # Skips what already exists. Run it yourself: it stores a secret and adds a Lake Formation administrator.
 set -euo pipefail
 . "$(dirname "$0")/env.sh"
-VENDING=${CREDENTIAL_VENDING_MODE:-SOURCE_VENDED}
-BUCKET='' PREFIX=''
-case $VENDING in
-  SOURCE_VENDED) ;;
-  AWS_VENDED)
-    # Lake Formation reads the lake with the role below instead of the catalog's credentials.
-    : "${LAKE_LOCATION:?set LAKE_LOCATION to the tenant prefix of the lake, s3://<bucket>/<tenant>, for AWS_VENDED}"
-    LAKE_LOCATION=${LAKE_LOCATION%/}
-    BUCKET=${LAKE_LOCATION#s3://}
-    BUCKET=${BUCKET%%/*}
-    PREFIX=${LAKE_LOCATION#s3://"$BUCKET"/}
-    ;;
-  *) echo "CREDENTIAL_VENDING_MODE must be SOURCE_VENDED or AWS_VENDED, not $VENDING" >&2; exit 1 ;;
-esac
-
 step "Secrets Manager secret $SECRET_NAME"
 if ! SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --query ARN --output text 2>/dev/null); then
   # On standard input, so the client secret never appears in a command line.
@@ -36,19 +21,11 @@ if ! aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
     --assume-role-policy-document '{"Version": "2012-10-17", "Statement": [{"Effect": "Allow",
       "Principal": {"Service": ["glue.amazonaws.com", "lakeformation.amazonaws.com"]}, "Action": "sts:AssumeRole"}]}'
 fi
-# The client secret always; the lake only for AWS_VENDED, since SOURCE_VENDED reads with the catalog's credentials.
-POLICY=$(SECRET_ARN=$SECRET_ARN BUCKET=$BUCKET PREFIX=$PREFIX python3 -c 'import json, os
-bucket, prefix = os.environ["BUCKET"], os.environ["PREFIX"]
-statements = [{"Sid": "CatalogClientSecret", "Effect": "Allow",
-               "Action": ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret", "secretsmanager:PutSecretValue"],
-               "Resource": os.environ["SECRET_ARN"]}]
-if bucket:
-    statements += [
-        {"Sid": "LakeRead", "Effect": "Allow", "Action": "s3:GetObject", "Resource": f"arn:aws:s3:::{bucket}/{prefix}/*"},
-        {"Sid": "LakeList", "Effect": "Allow", "Action": "s3:ListBucket", "Resource": f"arn:aws:s3:::{bucket}",
-         "Condition": {"StringLike": {"s3:prefix": [f"{prefix}/*"]}}}]
-print(json.dumps({"Version": "2012-10-17", "Statement": statements}))')
-aws iam put-role-policy --role-name "$ROLE_NAME" --policy-name federation --policy-document "$POLICY"
+# The client secret only: with SOURCE_VENDED the data comes with the catalog's credentials, not with this role's.
+aws iam put-role-policy --role-name "$ROLE_NAME" --policy-name federation --policy-document "{
+  \"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"CatalogClientSecret\", \"Effect\": \"Allow\",
+    \"Action\": [\"secretsmanager:GetSecretValue\", \"secretsmanager:DescribeSecret\", \"secretsmanager:PutSecretValue\"],
+    \"Resource\": \"$SECRET_ARN\"}]}"
 echo "$ROLE_ARN"
 
 step "Lake Formation administrator"
@@ -65,8 +42,10 @@ print(json.dumps(s))' "$CALLER_ARN")
 aws lakeformation put-data-lake-settings --data-lake-settings "$SETTINGS"
 echo "$CALLER_ARN"
 
-step "Glue connection $CONNECTION ($VENDING)"
-CONNECTION_INPUT=$(CONNECTION=$CONNECTION TENANT=$TENANT ROLE_ARN=$ROLE_ARN VENDING=$VENDING SECRET_ARN=$SECRET_ARN \
+step "Glue connection $CONNECTION"
+# SOURCE_VENDED: Athena and Redshift read with the catalog's vended credentials. The default, AWS_VENDED, reads with
+# the role above, which has no access to the lakehouse's bucket.
+CONNECTION_INPUT=$(CONNECTION=$CONNECTION TENANT=$TENANT ROLE_ARN=$ROLE_ARN SECRET_ARN=$SECRET_ARN \
   python3 -c 'import json, os
 print(json.dumps({
     "Name": os.environ["CONNECTION"],
@@ -75,7 +54,7 @@ print(json.dumps({
     "ConnectionProperties": {
         "INSTANCE_URL": os.environ["CATALOG_URI"],
         "ROLE_ARN": os.environ["ROLE_ARN"],
-        "CREDENTIAL_VENDING_MODE": os.environ["VENDING"],
+        "CREDENTIAL_VENDING_MODE": "SOURCE_VENDED",
         "CATALOG_CASING_FILTER": "LOWERCASE_ONLY"},
     "AuthenticationConfiguration": {
         "AuthenticationType": "OAUTH2",
@@ -88,10 +67,6 @@ print(json.dumps({
 if ! aws glue get-connection --name "$CONNECTION" >/dev/null 2>&1; then
   echo "$CONNECTION_INPUT" | aws glue create-connection --connection-input file:///dev/stdin \
     --query CreateConnectionStatus --output text
-elif [ "$(aws glue get-connection --name "$CONNECTION" \
-    --query Connection.ConnectionProperties.CREDENTIAL_VENDING_MODE --output text)" != "$VENDING" ]; then
-  # The mode is a property of the connection, so switching it keeps the registration and the federated catalog.
-  echo "$CONNECTION_INPUT" | aws glue update-connection --name "$CONNECTION" --connection-input file:///dev/stdin
 fi
 aws glue get-connection --name "$CONNECTION" --output text \
   --query 'Connection.[Status, ConnectionProperties.CREDENTIAL_VENDING_MODE]'
@@ -119,17 +94,6 @@ if ! aws athena get-work-group --work-group "$WORKGROUP" >/dev/null 2>&1; then
       "EngineVersion": {"SelectedEngineVersion": "AUTO"}}'
 fi
 echo "$WORKGROUP"
-
-if [ "$VENDING" = AWS_VENDED ]; then
-  step "Bucket-policy statements the owner of $BUCKET adds for AWS_VENDED"
-  cat <<EOF
-{ "Sid": "GlueFederationRead", "Effect": "Allow", "Principal": { "AWS": "$ROLE_ARN" },
-  "Action": "s3:GetObject", "Resource": "arn:aws:s3:::$BUCKET/$PREFIX/*" },
-{ "Sid": "GlueFederationList", "Effect": "Allow", "Principal": { "AWS": "$ROLE_ARN" },
-  "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::$BUCKET",
-  "Condition": { "StringLike": { "s3:prefix": ["$PREFIX/*"] } } }
-EOF
-fi
 
 # --- Amazon Redshift Serverless ------------------------------------------------------------------------------------
 

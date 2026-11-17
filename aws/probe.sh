@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# Shows, read only, where federation differs (README.md): what the federated catalog shows against what the catalog
-# holds, a mixed-case table by its exact name, and Athena queries on lowercase tables (their camelCase columns and
-# equality deletes, at the tables' current snapshots) and on a mixed-case table.
+# Shows, read only, what AWS Glue federates (README.md): the tables of each namespace in the catalog and in the
+# federated catalog, and a mixed-case table looked up by its exact name. The athena and redshift clients query the
+# federated tables.
 set -euo pipefail
 . "$(dirname "$0")/env.sh"
 NAMESPACES=${PROBE_NAMESPACES:-cdc_alarm cdc_event cdc_measurement latest_inventory}
 MIXED_NAMESPACE=${PROBE_MIXED_NAMESPACE:-cdc_measurement}
 MIXED_TABLE=${PROBE_MIXED_TABLE:-c8y_Temperature}
-LOWER_TABLE=${PROBE_LOWER_TABLE:-cdc_inventory.inventory}
 
 # The catalog itself, over its REST API; the token stays in this shell.
 TOKEN=$(curl -s "$CATALOG_TOKEN_URI" -d grant_type=client_credentials \
@@ -18,11 +17,6 @@ PREFIX=$(curl -s -H "Authorization: Bearer $TOKEN" "$CATALOG_URI/v1/config?wareh
 remote_tables() {
   curl -s -H "Authorization: Bearer $TOKEN" "$CATALOG_URI/v1/$PREFIX/namespaces/$1/tables?pageSize=1000" \
     | python3 -c 'import json, sys; print(" ".join(sorted(i["name"] for i in json.load(sys.stdin)["identifiers"])))'
-}
-# The current snapshot of namespace $1, table $2, so that Athena and any other engine can count the same data.
-snapshot() {
-  curl -s -H "Authorization: Bearer $TOKEN" "$CATALOG_URI/v1/$PREFIX/namespaces/$1/tables/$2" \
-    | python3 -c 'import json, sys; print(json.load(sys.stdin)["metadata"]["current-snapshot-id"])'
 }
 
 step "Namespaces of the federated catalog $ACCOUNT:$CATALOG"
@@ -38,38 +32,3 @@ done
 step "Glue get-table by exact name: $MIXED_NAMESPACE.$MIXED_TABLE"
 aws glue get-table --catalog-id "$ACCOUNT:$CATALOG" --database-name "$MIXED_NAMESPACE" --name "$MIXED_TABLE" \
   --query 'Table.{name: Name, location: StorageDescriptor.Location}' --output json 2>&1 || true
-
-athena() {
-  local id state
-  if ! id=$(aws athena start-query-execution --work-group "$WORKGROUP" --query-execution-context "Catalog=$CATALOG" \
-      --query-string "$1" --query QueryExecutionId --output text 2>&1); then
-    echo "rejected: $id"
-    return
-  fi
-  for _ in $(seq 90); do
-    state=$(aws athena get-query-execution --query-execution-id "$id" --query QueryExecution.Status.State --output text)
-    case $state in SUCCEEDED | FAILED | CANCELLED) break ;; esac
-    sleep 2
-  done
-  if [ "$state" = SUCCEEDED ]; then
-    aws athena get-query-results --query-execution-id "$id" --query 'ResultSet.Rows[1].Data[].VarCharValue' \
-      --output text | tr '\t' ' '
-  else
-    echo "$state: $(aws athena get-query-execution --query-execution-id "$id" --query QueryExecution.Status.StateChangeReason --output text)"
-  fi
-}
-
-step "Athena: SELECT count(*) FROM $LOWER_TABLE"
-athena "SELECT count(*) FROM $LOWER_TABLE"
-
-INVENTORY=$(snapshot cdc_inventory inventory)
-step "Athena: camelCase columns of cdc_inventory.inventory at snapshot $INVENTORY (rows, then non-null values)"
-athena "SELECT count(*), count(lastupdated), count(eventtype), count(creationtime), max(lastupdated)
-  FROM cdc_inventory.inventory FOR VERSION AS OF $INVENTORY"
-
-LATEST=$(snapshot latest_inventory inventory)
-step "Athena: equality deletes of latest_inventory.inventory at snapshot $LATEST (rows, then distinct ids)"
-athena "SELECT count(*), count(DISTINCT id) FROM latest_inventory.inventory FOR VERSION AS OF $LATEST"
-
-step "Athena: SELECT count(*) FROM $MIXED_NAMESPACE.\"$MIXED_TABLE\""
-athena "SELECT count(*) FROM $MIXED_NAMESPACE.\"$MIXED_TABLE\""
