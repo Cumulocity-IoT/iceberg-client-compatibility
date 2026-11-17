@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Reproduces the results in README.md, read only: what the federated catalog shows against what the catalog holds,
-# a mixed-case table by its exact name, and Athena queries on lowercase tables (their camelCase columns and equality
-# deletes, at the tables' current snapshots) and on a mixed-case table.
+# Shows, read only, where federation differs (README.md): what the federated catalog shows against what the catalog
+# holds, a mixed-case table by its exact name, and Athena queries on lowercase tables (their camelCase columns and
+# equality deletes, at the tables' current snapshots) and on a mixed-case table.
 set -euo pipefail
 . "$(dirname "$0")/env.sh"
 NAMESPACES=${PROBE_NAMESPACES:-cdc_alarm cdc_event cdc_measurement latest_inventory}
