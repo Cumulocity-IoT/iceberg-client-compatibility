@@ -1,0 +1,4 @@
+name = "Amazon Athena"
+url = "https://aws.amazon.com/athena/"
+example = "example.py"
+section = "product"

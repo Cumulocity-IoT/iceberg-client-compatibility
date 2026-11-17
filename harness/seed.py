@@ -17,6 +17,10 @@ from datetime import datetime, timezone
 EXTERNAL_ID = ("c8y_Serial", "iceberg-client-compatibility-fixture")
 FRAGMENT = "compat_Fixture"
 ESCAPED_FRAGMENT = "compat.Escaped"
+# The fixture again under a name without capitals, for the lowercase-tables workaround of catalogs that leave out
+# tables with mixed-case names. It differs from FRAGMENT in more than case, so that clients that fold names to
+# lowercase do not see two tables of the same name. It leaves out tooDeep, so that cdc_rejected.trash gets one row.
+LOWERCASE_FRAGMENT = "compat_lowercase"
 # Cumulocity keeps event numbers as doubles, so a literal survives only with double precision. These do, and
 # a client that reads decimal(38,9) through a double still changes them: 12345678901234567000 (posted as
 # 1.2345678901234567E19, since Cumulocity parses an integer literal as a long) becomes
@@ -27,6 +31,8 @@ TOO_DEEP = 15  # one path deeper than the limit, so Iceflow bins it into cdc_rej
 UPDATES = 3  # quick inventory updates within one batch
 # Posted once with --baseline, before addedLater existed, so its data file lacks that column for good.
 BASELINE_RUN = "baseline-20261102T144935Z"
+# The same for the table of LOWERCASE_FRAGMENT, posted before the first run that wrote it.
+LOWERCASE_BASELINE_RUN = "baseline-lowercase-20261116T215810Z"
 
 
 def fixture_plan(seeded):
@@ -37,6 +43,7 @@ def fixture_plan(seeded):
         "table": {"namespace": "cdc_event", "table": FRAGMENT},
         "escaped": {"namespace": "cdc_event", "table": "compat_x002EEscaped"},
         "trash": {"namespace": "cdc_rejected", "table": "trash"},
+        "lowercase": {"namespace": "cdc_event", "table": LOWERCASE_FRAGMENT, "baseline_run": LOWERCASE_BASELINE_RUN},
         "expect": {
             "decimals": {"decimalValue": "12345678901234567000.000000000", "fractionDecimal": "0.123456789",
                          "tinyDecimal": "0.000000001"},
@@ -118,6 +125,7 @@ def fixture_event(device, run_id, now, with_added_later=True):
         "source": {"id": device},
         FRAGMENT: fragment,
         ESCAPED_FRAGMENT: {"runId": run_id},
+        LOWERCASE_FRAGMENT: {name: value for name, value in fragment.items() if name != "tooDeep"},
     }
     # json cannot write a Decimal, so the exact literals replace their placeholders in the text.
     text = json.dumps(event)

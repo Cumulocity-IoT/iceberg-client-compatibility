@@ -21,10 +21,6 @@ from snowflake.connector.constants import FIELD_ID_TO_NAME  # noqa: E402
 from example import query  # noqa: E402
 from harness.redact import redact  # noqa: E402
 
-# One provisioning step sets up both: login and storage access are properties of the catalog integration behind the
-# linked database, which the queries through it then prove.
-SOURCE = "A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending."
-
 LINKED_DB = "docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database"
 EQUALITY_DELETES = f'A catalog-linked database does not read equality delete files ("Row-level deletes with equality delete files aren\'t supported", {LINKED_DB})'
 VIEWS = f"A catalog-linked database syncs the remote namespaces as schemas and their Iceberg tables, not Iceberg views ({LINKED_DB})"
@@ -73,14 +69,14 @@ def catalog_login(plan):
     missing = sorted(wanted - listed)
     if missing:
         return {"status": "fail", "note": f"SHOW SCHEMAS does not list {', '.join(missing)}."}
-    return {"status": "ok", "data": {"schemas": len(listed)}, "note": SOURCE}
+    return {"status": "ok", "data": {"schemas": len(listed)}}
 
 
 def s3(plan):
     rows, _ = query(f"SELECT * FROM {name(plan['measurement'])} LIMIT 5")
     if not rows:
         return {"status": "fail", "note": "The measurement table returned no rows."}
-    return {"status": "ok", "data": {"rows": len(rows)}, "note": SOURCE}
+    return {"status": "ok", "data": {"rows": len(rows)}}
 
 
 def cdc_tables(plan):
@@ -118,7 +114,7 @@ def views(plan):
         view = count(f"SELECT COUNT(*) FROM {name(v, 'view')} x {where}")
     except Exception as error:
         if "does not exist" in str(error):
-            return {"status": "na", "note": f"{VIEWS}; the query fails with {message(error)}"}
+            return {"status": "na", "source": LINKED_DB, "note": f"{VIEWS}; the query fails with {message(error)}"}
         raise
     data = {"view": view, "table": count(f"SELECT COUNT(*) FROM {name(m)} x {where}")}
     if data["view"] != data["table"]:
@@ -229,7 +225,8 @@ def incremental_read(plan):
         rows, _ = query(f"""SELECT "runId" FROM {name(f['table'])} CHANGES(INFORMATION => APPEND_ONLY) AT(TIMESTAMP => {ts(f['posted'])})""")
     except Exception as error:
         if re.search(r"(?i)change.?tracking|not supported|unsupported", str(error)):
-            return {"status": "na", "note": f"{INCREMENTAL}; the CHANGES query fails with {message(error)}"}
+            return {"status": "na", "source": "the CHANGES query fails with error 091947",
+                    "note": f"{INCREMENTAL}; the CHANGES query fails with {message(error)}"}
         raise
     got = [r[0] for r in rows]
     if got != [f["run_id"]]:

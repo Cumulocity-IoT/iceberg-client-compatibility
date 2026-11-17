@@ -83,7 +83,7 @@ def latest_tables(catalog, plan):
     except (ValueError, NotImplementedError) as e:
         if "does not yet support equality deletes" not in str(e):
             raise
-        return {"status": "na", "data": deletes, "note": "Daft plans Iceberg reads with PyIceberg, which raises on equality delete files; Daft applies position deletes only (Eventual-Inc/Daft#2458, equality deletes blocked by PyIceberg)."}
+        return {"status": "na", "data": deletes, "footnote": "pyiceberg-equality-deletes", "note": "Daft plans Iceberg reads with PyIceberg, which raises on equality delete files; Daft applies position deletes only (Eventual-Inc/Daft#2458, equality deletes blocked by PyIceberg)."}
     data = {**row, **deletes}
     if data["rows"] == 0:
         return {"status": "inconclusive", "data": data, "note": "The latest table returned no rows."}
@@ -202,14 +202,15 @@ def views(catalog, plan):
             if key == "base" or "not found" not in str(e).lower() or not catalog.view_exists((ns, name)):
                 raise
             note = "Daft's catalogs resolve only tables and namespaces, and its Iceberg catalog loads names with PyIceberg's load_table, so the view is not found (docs.daft.ai/en/stable/connectors/custom-catalogs)"
-            return {"status": "na", "data": counts, "note": redact(f"{note}: {type(e).__name__}: {first_line(e)}")[:400]}
+            return {"status": "na", "data": counts, "source": "docs.daft.ai/en/stable/connectors/custom-catalogs",
+                    "note": redact(f"{note}: {type(e).__name__}: {first_line(e)}")[:400]}
     if counts["view"] != counts["base"] or counts["base"] == 0:
         return {"status": "fail", "data": counts, "note": f"The view counts {counts['view']} rows for the device, its base table {counts['base']}."}
     return {"status": "ok", "data": counts}
 
 
 def incremental_read(catalog, plan):
-    return {"status": "na", "note": "Daft's read_iceberg reads one snapshot, branch or tag and has no snapshot-range read (Eventual-Inc/Daft#4139, open)."}
+    return {"status": "na", "source": "Eventual-Inc/Daft#4139", "note": "Daft's read_iceberg reads one snapshot, branch or tag and has no snapshot-range read (Eventual-Inc/Daft#4139, open)."}
 
 
 CHECKS = {"catalog-login": catalog_login, "s3": s3, "cdc-tables": cdc_tables, "latest-tables": latest_tables,

@@ -24,6 +24,7 @@
     },
     "latest-tables": {
       "status": "na",
+      "footnote": "pyiceberg-equality-deletes",
       "note": "PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210)."
     },
     "identifiers": {
@@ -51,11 +52,11 @@
     "incremental-read": {
       "status": "ok",
       "data": {
-        "from": "2424176303353229952",
-        "to": "5201353028175405150",
+        "from": "5541411046724810301",
+        "to": "5823614016064362375",
         "rows": 1
       }
     }
   },
-  "date": "2026-11-16"
+  "date": "2026-11-17"
 }

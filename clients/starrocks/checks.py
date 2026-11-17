@@ -242,7 +242,8 @@ def main(plan_path, out_path):
     ]:
         checks[check_id] = login_failed or attempt(check)
         print(check_id, checks[check_id]["status"], checks[check_id].get("workaround", ""), file=sys.stderr)
-    checks["incremental-read"] = {"status": "na", "note": INCREMENTAL}
+    checks["incremental-read"] = {"status": "na", "note": INCREMENTAL,
+                                 "source": "docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel"}
 
     version = query("SELECT current_version()")[1][0][0]  # for example 4.1.7-b81ff9c
     out = {"client": "starrocks", "version": version.split("-")[0],

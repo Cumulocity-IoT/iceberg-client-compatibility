@@ -36,6 +36,9 @@ def plan(now, run_id):
         # The fixture's escaped table (fragment compat.Escaped) and its camelCase column.
         "escaped": {"namespace": "cdc_event", "table": "compat_x002EEscaped", "column": "runId"},
         "view": {"namespace": "view_measurement", "view": "c8y_Temperature"},
+        # Only for the lowercase-tables workaround: a CDC table without capitals in its name, with a device whose
+        # simulator posts an event every five seconds, in place of the measurement table.
+        "lowercase": {"namespace": "cdc_event", "table": "event", "source": "782204"},
         # Only for the s3-region workaround: the region the catalog vends for this lake.
         "region": "eu-central-1",
     }

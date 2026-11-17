@@ -71,7 +71,7 @@ def latest_tables(catalog, plan):
     except ValueError as e:
         if "does not yet support equality deletes" not in str(e):
             raise
-        return {"status": "na", "note": "The polars-iceberg planner rejects equality delete files and PyIceberg's reader, the fallback, raises 'PyIceberg does not yet support equality deletes' (apache/iceberg-python#1210)."}
+        return {"status": "na", "footnote": "pyiceberg-equality-deletes", "note": "The polars-iceberg planner rejects equality delete files and PyIceberg's reader, the fallback, raises 'PyIceberg does not yet support equality deletes' (apache/iceberg-python#1210)."}
     if data["rows"] == 0:
         return {"status": "inconclusive", "data": data, "note": "The latest table returned no rows."}
     if data["rows"] != data["ids"]:
@@ -211,7 +211,8 @@ def views(catalog, plan):
     try:
         on_view = ctx.execute(f'SELECT * FROM lake."{v["namespace"]}"."{v["view"]}"').filter(rows).select(pl.len()).collect().item()
     except NoSuchTableError:
-        return {"status": "na", "note": "Polars reads Iceberg tables only: scan_iceberg and SQLContext.register_catalog load a name with load_table, which raises NoSuchTableError for the view (docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html)."}
+        return {"status": "na", "source": "docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html",
+                "note": "Polars reads Iceberg tables only: scan_iceberg and SQLContext.register_catalog load a name with load_table, which raises NoSuchTableError for the view (docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html)."}
     data = {"view": on_view, "table": scan(catalog, m).filter(rows).select(pl.len()).collect().item()}
     if data["view"] != data["table"]:
         return {"status": "fail", "data": data, "note": f"The view returns {data['view']} rows, its base table {data['table']}."}

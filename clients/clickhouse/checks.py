@@ -211,7 +211,7 @@ def views(plan):
     except RuntimeError as e:
         if "UNKNOWN_TABLE" not in str(e):
             raise
-        return {"status": "na", "note": f"ClickHouse's Iceberg REST catalog loads only tables, never views ({REST_CATALOG}), "
+        return {"status": "na", "source": REST_CATALOG, "note": f"ClickHouse's Iceberg REST catalog loads only tables, never views ({REST_CATALOG}), "
                                         "so the view is an unknown table (UNKNOWN_TABLE)."}
     d = {"view": view, "table": query(f"SELECT count() AS n FROM {table(m)} {where}")[0][0]["n"]}
     if d["view"] != d["table"]:
@@ -222,7 +222,7 @@ def views(plan):
 
 
 def incremental_read(plan):
-    return {"status": "na", "note": f"ClickHouse reads an Iceberg table at one snapshot (iceberg_snapshot_id, "
+    return {"status": "na", "source": DOCS, "note": f"ClickHouse reads an Iceberg table at one snapshot (iceberg_snapshot_id, "
                                     f"iceberg_timestamp_ms) and has no incremental read between snapshots ({DOCS})."}
 
 

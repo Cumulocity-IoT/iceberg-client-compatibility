@@ -75,7 +75,7 @@ def latest_tables(catalog, plan):
     except ValueError as e:
         if "does not yet support equality deletes" not in str(e):
             raise
-        return {"status": "na", "note": "PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210)."}
+        return {"status": "na", "footnote": "pyiceberg-equality-deletes", "note": "PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210)."}
     data = {"rows": len(ids), "ids": pc.count_distinct(ids).as_py()}
     if data["rows"] == 0:
         return {"status": "inconclusive", "data": data, "note": "The latest table returned no rows."}
