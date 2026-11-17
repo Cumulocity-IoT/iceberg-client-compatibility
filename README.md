@@ -48,8 +48,8 @@ catalog to reading tables that are updated with delete files. What each column m
 
 | Client | Example | Version | Tested | Login | S3 | CDC tables | Latest tables | Schema evolution | Incremental read | Decimal | Timestamps | Nesting | Large values | Identifiers | Views |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| [Amazon Athena](https://aws.amazon.com/athena/) | [🔗](clients/athena/example.py "Example for Amazon Athena") | 3 | 2026-11-16 | ✅[^28] | ⚠️[^29] | ⚠️[^29] | ✅ | ⚠️[^29] | ➖[^30] | ⚠️[^29] | ⚠️[^29] | ⚠️[^29] | ⚠️[^29] | ❌[^31] | ➖[^32] |
-| [Amazon Redshift](https://aws.amazon.com/redshift/) | [🔗](clients/redshift/example.py "Example for Amazon Redshift") | 1.0.539508 | 2026-11-16 | ✅[^33] | ⚠️[^34] | ⚠️[^34] | ✅ | ⚠️[^34] | ➖[^35] | ⚠️[^34] | ⚠️[^34] | ⚠️[^34] | ❌[^36] | ❌[^37] | ➖[^38] |
+| [Amazon Athena](https://aws.amazon.com/athena/) | [🔗](clients/athena/example.py "Example for Amazon Athena") | 3 | 2026-11-17 | ✅[^28] | ⚠️[^29] | ⚠️[^29] | ✅ | ⚠️[^29] | ➖[^30] | ⚠️[^29] | ⚠️[^29] | ⚠️[^29] | ⚠️[^29] | ❌[^31] | ➖[^32] |
+| [Amazon Redshift](https://aws.amazon.com/redshift/) | [🔗](clients/redshift/example.py "Example for Amazon Redshift") | 1.0.539508 | 2026-11-17 | ✅[^33] | ⚠️[^34] | ⚠️[^34] | ✅ | ⚠️[^34] | ➖[^35] | ⚠️[^34] | ⚠️[^34] | ⚠️[^34] | ❌[^36] | ❌[^37] | ➖[^38] |
 | [Dremio Enterprise](https://www.dremio.com) | [🔗](clients/dremio/example.py "Example for Dremio Enterprise") | 26.1.12 | 2026-11-16 | ✅[^39] | ✅[^39] | ✅ | ✅ | ✅ | ➖[^40] | ✅[^41] | ✅[^42] | ✅ | ✅ | ✅ | ✅ |
 | [Snowflake](https://www.snowflake.com) | [🔗](clients/snowflake/example.py "Example for Snowflake") | 10.42.101 | 2026-11-16 | ✅[^43] | ✅[^43] | ✅ | ➖[^44] | ✅ | ➖[^45] | ✅ | ✅ | ✅ | ✅ | ✅ | ➖[^46] |
 

@@ -6,7 +6,7 @@
     "catalog-login": {
       "status": "ok",
       "data": {
-        "namespaces": 15
+        "namespaces": 7
       },
       "note": "An AWS Glue connection was provisioned with the OAuth client credential and CREDENTIAL_VENDING_MODE = SOURCE_VENDED, and a federated catalog on it."
     },
@@ -91,5 +91,5 @@
       "note": "Athena SQL reads an Iceberg table at one snapshot (FOR VERSION AS OF, FOR TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.aws.amazon.com/athena/latest/ug/querying-iceberg-time-travel-and-version-travel-queries.html)."
     }
   },
-  "date": "2026-11-16"
+  "date": "2026-11-17"
 }

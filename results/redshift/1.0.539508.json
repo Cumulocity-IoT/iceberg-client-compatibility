@@ -6,7 +6,7 @@
     "catalog-login": {
       "status": "ok",
       "data": {
-        "namespaces": 15
+        "namespaces": 7
       },
       "note": "An AWS Glue connection was provisioned with the OAuth client credential and CREDENTIAL_VENDING_MODE = SOURCE_VENDED, a federated catalog on it, and external schemas on Glue resource links to its namespaces."
     },
@@ -90,5 +90,5 @@
       "note": "Redshift reads an Iceberg table as of one point in time (AS OF TIMESTAMP) and has no query for the rows appended between two snapshots (docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html)."
     }
   },
-  "date": "2026-11-16"
+  "date": "2026-11-17"
 }
