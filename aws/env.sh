@@ -35,15 +35,28 @@ OIDC_PROVIDER_ARN=arn:aws:iam::$ACCOUNT:oidc-provider/token.actions.githubuserco
 
 step() { echo; echo "== $*"; }
 
+# Grants Lake Formation permissions. Lake Formation refuses an IAM role as "Invalid principal" until IAM has
+# propagated it, some seconds after its creation, so this tries again for up to a minute.
+lf_grant() {
+  local tries=0 out
+  until out=$(aws lakeformation grant-permissions "$@" 2>&1); do
+    if [[ $out != *"Invalid principal"* ]] || ((++tries == 12)); then
+      echo "$out" >&2
+      return 1
+    fi
+    sleep 5
+  done
+}
+
 # Lets principal $1 find the federated catalog and its namespaces, and read the tables in them.
 grant_catalog() {
   local principal=$1 ns
-  aws lakeformation grant-permissions --principal DataLakePrincipalIdentifier="$principal" --permissions DESCRIBE \
+  lf_grant --principal DataLakePrincipalIdentifier="$principal" --permissions DESCRIBE \
     --resource "{\"Catalog\": {\"Id\": \"$ACCOUNT:$CATALOG\"}}"
   for ns in $NAMESPACES; do
-    aws lakeformation grant-permissions --principal DataLakePrincipalIdentifier="$principal" --permissions DESCRIBE \
+    lf_grant --principal DataLakePrincipalIdentifier="$principal" --permissions DESCRIBE \
       --resource "{\"Database\": {\"CatalogId\": \"$ACCOUNT:$CATALOG\", \"Name\": \"$ns\"}}"
-    aws lakeformation grant-permissions --principal DataLakePrincipalIdentifier="$principal" --permissions SELECT DESCRIBE \
+    lf_grant --principal DataLakePrincipalIdentifier="$principal" --permissions SELECT DESCRIBE \
       --resource "{\"Table\": {\"CatalogId\": \"$ACCOUNT:$CATALOG\", \"DatabaseName\": \"$ns\", \"TableWildcard\": {}}}"
   done
 }

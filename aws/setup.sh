@@ -154,7 +154,7 @@ step "Glue resource links $LINK_PREFIX<namespace> in the default catalog"
 for ns in $NAMESPACES; do
   aws glue get-database --name "$LINK_PREFIX$ns" >/dev/null 2>&1 || aws glue create-database --database-input \
     "{\"Name\": \"$LINK_PREFIX$ns\", \"TargetDatabase\": {\"CatalogId\": \"$ACCOUNT:$CATALOG\", \"DatabaseName\": \"$ns\"}}"
-  aws lakeformation grant-permissions --principal DataLakePrincipalIdentifier="$REDSHIFT_ROLE_ARN" --permissions DESCRIBE \
+  lf_grant --principal DataLakePrincipalIdentifier="$REDSHIFT_ROLE_ARN" --permissions DESCRIBE \
     --resource "{\"Database\": {\"Name\": \"$LINK_PREFIX$ns\"}}"
 done
 grant_catalog "$REDSHIFT_ROLE_ARN"
