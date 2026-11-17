@@ -21,10 +21,6 @@ from snowflake.connector.constants import FIELD_ID_TO_NAME  # noqa: E402
 from example import query  # noqa: E402
 from harness.redact import redact  # noqa: E402
 
-# One provisioning step sets up both: login and storage access are properties of the catalog integration behind the
-# linked database, which the queries through it then prove.
-SOURCE = "A Snowflake catalog integration was provisioned with the OAuth client credential and credential vending."
-
 LINKED_DB = "docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database"
 EQUALITY_DELETES = f'A catalog-linked database does not read equality delete files ("Row-level deletes with equality delete files aren\'t supported", {LINKED_DB})'
 VIEWS = f"A catalog-linked database syncs the remote namespaces as schemas and their Iceberg tables, not Iceberg views ({LINKED_DB})"
@@ -73,14 +69,14 @@ def catalog_login(plan):
     missing = sorted(wanted - listed)
     if missing:
         return {"status": "fail", "note": f"SHOW SCHEMAS does not list {', '.join(missing)}."}
-    return {"status": "ok", "data": {"schemas": len(listed)}, "note": SOURCE}
+    return {"status": "ok", "data": {"schemas": len(listed)}}
 
 
 def s3(plan):
     rows, _ = query(f"SELECT * FROM {name(plan['measurement'])} LIMIT 5")
     if not rows:
         return {"status": "fail", "note": "The measurement table returned no rows."}
-    return {"status": "ok", "data": {"rows": len(rows)}, "note": SOURCE}
+    return {"status": "ok", "data": {"rows": len(rows)}}
 
 
 def cdc_tables(plan):

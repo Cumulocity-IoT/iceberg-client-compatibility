@@ -15,10 +15,6 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from example import TENANT, info, query, query_typed  # noqa: E402
 from harness.redact import redact  # noqa: E402
 
-# One provisioning step sets up both: login and storage access are properties of the Dremio data source, which the
-# queries through it then prove.
-SOURCE = "A Dremio data source was provisioned with the OAuth client credential and credential vending."
-
 INCREMENTAL = ("Dremio SQL reads an Iceberg table as of one snapshot only (AT SNAPSHOT, AT <timestamp>) and has no clause "
                "or table function for the rows appended between two snapshots "
                "(docs.dremio.com/current/reference/sql/commands/SELECT-statements).")
@@ -101,9 +97,7 @@ def decimal(plan):
              if types.get(c, {}).get("name") != "DECIMAL" or not isinstance(row[c], Decimal) or row[c] != Decimal(expect[c])}
     if wrong:
         return {"status": "fail", "data": data, "note": f"Expected {({c: expect[c] for c in wrong})}, got {wrong}."}
-    return {"status": "ok", "data": data,
-            "note": "The REST API returns decimal(38,9) as exact JSON number literals, read here as decimals; "
-                    "a JSON parser that reads numbers as doubles rounds them."}
+    return {"status": "ok", "data": data}
 
 
 def timestamps(plan):
@@ -117,8 +111,7 @@ def timestamps(plan):
     instant = instant if instant.tzinfo else instant.replace(tzinfo=timezone.utc)  # Dremio returns UTC without a zone
     if instant != datetime.fromisoformat(t["value"]):
         return {"status": "fail", "data": data, "note": f"Expected {t['value']}, got {got} (UTC)."}
-    return {"status": "ok", "data": data,
-            "note": "The REST API has no session time zone, so Asia/Kolkata could not be set; it returns the instant as UTC."}
+    return {"status": "ok", "data": data}
 
 
 def nesting(plan):
@@ -187,8 +180,9 @@ def run(check, plan):
 def main(plan_path, out_path):
     plan = json.loads(Path(plan_path).read_text())
     checks = {
-        "catalog-login": {"status": "ok", "note": SOURCE},
-        "s3": {"status": "ok", "note": SOURCE},
+        # Login and storage access are properties of the Dremio data source, which the queries through it prove.
+        "catalog-login": {"status": "ok"},
+        "s3": {"status": "ok"},
         "cdc-tables": run(cdc_tables, plan),
         "latest-tables": run(latest_tables, plan),
         "identifiers": run(identifiers, plan),

@@ -142,7 +142,7 @@ async fn main() -> Res<()> {
     checks.insert("schema-evolution", fixture_check(async || schema_evolution(&catalog, &fixture, run, &x["evolution"]).await).await);
     checks.insert("timestamps", fixture_check(async || timestamps(&catalog, &fixture, run, &x["timestamp"]).await).await);
 
-    checks.insert("incremental-read", json!({"status": "na", "note": "Iceberg Rust scans one snapshot only \
+    checks.insert("incremental-read", json!({"status": "na", "footnote": "iceberg-rust-incremental", "note": "Iceberg Rust scans one snapshot only \
         (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in \
         apache/iceberg-rust#2152 (PR #2997)"}));
     write(out_path, checks)
@@ -457,6 +457,7 @@ fn write(out_path: &str, mut checks: BTreeMap<&str, Value>) -> Res<()> {
         if let Some(c) = checks.get_mut("catalog-login").filter(|c| c["status"] == "ok") {
             c["status"] = "warn".into();
             c["workaround"] = "tls".into();
+            c["footnote"] = "iceberg-rust-tls".into(); // footnotes.toml
             c["note"] = "iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct \
                 reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)"
                 .into();

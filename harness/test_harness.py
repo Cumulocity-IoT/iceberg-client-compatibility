@@ -77,11 +77,38 @@ class RenderTest(unittest.TestCase):
         self.assertIn("[^2]: PyIceberg 1.0, Views: needs the `s3-region` workaround", table)
 
     def test_cells_with_the_same_note_share_a_footnote(self):
-        checks = {"catalog-login": {"status": "ok", "note": "one setup"}, "latest-tables": {"status": "ok", "note": "one setup"},
+        checks = {"catalog-login": {"status": "fail", "note": "one cause"}, "latest-tables": {"status": "na", "note": "one cause"},
                   "views": {"status": "na", "note": "other"}}
         table = render(COLUMNS, CLIENTS, [{"client": "pyiceberg", "version": "1.0", "date": "2026-11-02", "checks": checks}])
-        self.assertIn("| ✅[^1] | ✅[^1] | ➖[^2] |", table)
-        self.assertIn("[^1]: PyIceberg 1.0, Login, Latest tables: one setup", table)
+        self.assertIn("| ❌[^1] | ➖[^1] | ➖[^2] |", table)
+        self.assertIn("[^1]: PyIceberg 1.0, Login, Latest tables: one cause", table)
+
+    def test_a_passing_cell_has_no_footnote(self):
+        # How a client is set up belongs in its README, not in the table.
+        checks = {"catalog-login": {"status": "ok", "note": "a data source was provisioned"}}
+        table = render(COLUMNS, CLIENTS, [{"client": "pyiceberg", "version": "1.0", "date": "2026-11-02", "checks": checks}])
+        self.assertIn("| ✅ |", table)
+        self.assertNotIn("[^", table)
+
+    def test_clients_that_name_the_same_footnote_share_it_across_sections(self):
+        clients = {**CLIENTS, "daft": {"name": "Daft", "section": "engine", "example": "example.py"}}
+        shared = {"status": "na", "footnote": "pyiceberg-deletes", "note": "the client's own words"}
+        table = render(COLUMNS, clients, [
+            result("pyiceberg", "0.12.0", "2026-11-09", **{"latest-tables": shared}),
+            result("daft", "0.7.26", "2026-11-09", **{"latest-tables": shared, "views": {"status": "na", "note": "no views"}}),
+            result("daft", "0.7.25", "2026-11-02", **{"latest-tables": shared, "views": {"status": "fail", "note": "no views"}}),
+        ], {"pyiceberg-deletes": "PyIceberg raises on equality deletes."})
+        self.assertIn("| ➖[^1] |", table)
+        self.assertIn("| ➖[^1] | ➖[^2] |", table)
+        self.assertIn("| ➖[^1] | ❌[^2] |", table)
+        self.assertIn("[^1]: PyIceberg 0.12.0 and Daft 0.7.26 and 0.7.25: PyIceberg raises on equality deletes.", table)
+        self.assertIn("[^2]: Daft 0.7.26, 0.7.25, Views: no views", table)
+        self.assertNotIn("own words", table)
+
+    def test_a_footnote_must_exist(self):
+        checks = {"latest-tables": {"status": "na", "footnote": "missing"}}
+        with self.assertRaisesRegex(ValueError, "footnotes.toml lacks"):
+            validate(COLUMNS, CLIENTS, [result("pyiceberg", "1.0", "2026-11-02", **checks)], {})
 
     def test_a_client_with_a_url_is_linked_by_name(self):
         clients = {"datafusion": {"name": "Apache DataFusion", "section": "engine", "url": "https://datafusion.apache.org",
@@ -111,7 +138,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn("[^2]: Apache DataFusion 53.1.0, Latest tables: old rows", table)
 
     def test_every_client_names_an_example_that_exists(self):
-        _, clients, _ = load()
+        _, clients, _, _ = load()
         for name, client in clients.items():
             self.assertTrue((ROOT / "clients" / name / client["example"]).is_file(), f"clients/{name}: no {client['example']}")
 

@@ -147,9 +147,7 @@ def main(plan_path, out_path):
         shown = datetime.fromisoformat(row["text"])
         if shown != instant or shown.utcoffset() != timedelta(hours=5, minutes=30):
             return {"status": "fail", "data": d, "note": f"Expected {t['value']} shown at +05:30, got {row['text']!r}."}
-        return {"status": "ok", "data": d,
-                "note": "The MySQL protocol carries TIMESTAMPTZ(6) as text in the session time zone, so the instant is "
-                        "read as epoch milliseconds through MILLISECOND_TIMESTAMP."}
+        return {"status": "ok", "data": d}
 
     def nesting():
         n, lst = ex["nested"], ex["list"]

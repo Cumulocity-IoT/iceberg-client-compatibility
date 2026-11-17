@@ -1,0 +1,19 @@
+# Footnotes that several clients share, because the cause is in a library they are built on or in a service they read
+# the catalog through. A check names one with "footnote": "<id>" (clients/CONTRACT.md), and the table shows its text
+# once, after the clients and versions that name it.
+
+[[footnote]]
+id = "iceberg-rust-tls"
+text = "needs the `tls` workaround: iceberg-catalog-rest, the REST catalog client of Iceberg Rust, which Apache DataFusion reads Iceberg with, builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)."
+
+[[footnote]]
+id = "iceberg-rust-incremental"
+text = "Iceberg Rust, which Apache DataFusion reads Iceberg with, scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)."
+
+[[footnote]]
+id = "pyiceberg-equality-deletes"
+text = "PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210). Daft plans its Iceberg reads with PyIceberg (Eventual-Inc/Daft#2458), and Polars falls back to PyIceberg's reader for the equality delete files its own planner rejects."
+
+[[footnote]]
+id = "aws-glue-federation"
+text = "AWS Glue catalog federation, through which both read the catalog, leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY, and federates no views (docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html). The checks marked ⚠️ read the same data from tables whose names have no capitals, with the `lowercase-tables` workaround. [`aws/`](aws) describes the federation."

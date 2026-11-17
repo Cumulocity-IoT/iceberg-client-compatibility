@@ -29,8 +29,7 @@ from harness.redact import redact  # noqa: E402
 CATALOG = os.environ.get("GLUE_CATALOG") or os.environ["CATALOG_WAREHOUSE"]
 
 SWITCH = "lowercase-tables"
-SOURCE = ("An AWS Glue connection was provisioned with the OAuth client credential and CREDENTIAL_VENDING_MODE = "
-          "SOURCE_VENDED, a federated catalog on it, and external schemas on Glue resource links to its namespaces.")
+GLUE = "aws-glue-federation"  # the footnote in footnotes.toml that Athena and Redshift share
 CASING = ("AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, "
           "as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY")
 VIEWS = ('AWS Glue catalog federation discovers "Iceberg tables in external catalogs" '
@@ -38,9 +37,6 @@ VIEWS = ('AWS Glue catalog federation discovers "Iceberg tables in external cata
          "not even those with lowercase names such as view_alarm.alarm")
 INCREMENTAL = ("Redshift reads an Iceberg table as of one point in time (AS OF TIMESTAMP) and has no query for the "
                "rows appended between two snapshots (docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html).")
-UTC_WITHOUT_ZONE = ("Redshift reads timestamptz as a timestamp without zone, in UTC; with the session time zone "
-                    "Asia/Kolkata it returns the same value.")
-AS_TEXT = "The Data API returns decimal(38,9) as text with its type numeric(38,9), read here as an exact decimal."
 TRUNCATED = ("Redshift reads an Iceberg string as varchar(16384) and truncates longer strings "
              "(docs.aws.amazon.com/redshift/latest/dg/querying-iceberg-supported-data-types.html).")
 NOT_FOUND = re.compile(r"EntityNotFoundException")  # Glue's answer for a table it does not federate
@@ -112,7 +108,7 @@ def catalog_login(plan):
     missing = sorted(wanted - listed)
     if missing:
         return {"status": "fail", "note": f"The federated catalog does not list {', '.join(missing)}."}
-    return {"status": "ok", "data": {"namespaces": len(listed)}, "note": SOURCE}
+    return {"status": "ok", "data": {"namespaces": len(listed)}}
 
 
 def s3(plan):
@@ -152,7 +148,7 @@ def views(plan):
         view = count(f"SELECT count(*) FROM {name(v, 'view')} x {where}")
     except RuntimeError as error:
         if NOT_FOUND.search(str(error)):
-            return {"status": "na", "note": f"{VIEWS}; the query fails with {message(error)}"}
+            return {"status": "na", "footnote": GLUE, "note": f"{VIEWS}; the query fails with {message(error)}"}
         raise
     data = {"view": view, "table": count(f"SELECT count(*) FROM {name(m)} x {where}")}
     if data["view"] != data["table"]:
@@ -192,7 +188,7 @@ def decimal(plan):
     wrong = {n: repr(row[i]) for i, (n, v) in enumerate(decimals.items()) if not isinstance(row[i], Decimal) or row[i] != Decimal(v)}
     if wrong:
         return {"status": "fail", "note": f"Expected {({n: decimals[n] for n in wrong})}, got {wrong}."}
-    return {"status": "ok", "data": {n: f"{row[i]:f}" for i, n in enumerate(decimals)}, "note": AS_TEXT}
+    return {"status": "ok", "data": {n: f"{row[i]:f}" for i, n in enumerate(decimals)}}
 
 
 def timestamps(plan):
@@ -204,8 +200,7 @@ def timestamps(plan):
     instant = actual if actual.tzinfo else actual.replace(tzinfo=timezone.utc)
     if instant != expected:
         return {"status": "fail", "note": f"Expected the instant {t['value']}, got {actual!r}."}
-    result = {"status": "ok", "data": {"value": actual.isoformat()}}
-    return result if actual.tzinfo else {**result, "note": UTC_WITHOUT_ZONE}
+    return {"status": "ok", "data": {"value": actual.isoformat()}}
 
 
 def nesting(plan):
@@ -270,7 +265,7 @@ def run(check, plan):
         return check(plan)
     except Exception as error:  # a check that raises is a fail with the error
         if NOT_FOUND.search(str(error)):
-            return {"status": "fail", "note": f"{CASING}: {message(error)}"}
+            return {"status": "fail", "footnote": GLUE, "note": f"{CASING}: {message(error)}"}
         return {"status": "fail", "note": message(error)}
 
 
@@ -281,7 +276,7 @@ def attempt(check, plan, switchable):
         return plain
     switched = run(check, lowercase(plan))
     if switched["status"] == "ok":
-        return {**switched, "status": "warn", "workaround": SWITCH,
+        return {**switched, "status": "warn", "workaround": SWITCH, "footnote": GLUE,
                 "note": f"The check reads the same data from tables whose names have no capitals. Without it: {plain['note']}"}
     if switched.get("note") != plain.get("note"):
         return {**switched, "note": f"With the {SWITCH} switch: {switched.get('note')}"}

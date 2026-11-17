@@ -10,6 +10,7 @@ any client the same way.
 | `client.toml` | Name, the project's website (`url`, linked from the name in the table), the path of the example in the folder (`example`, linked from the Example column), section (`library`, `engine`, `product`, `managed-spark`), where releases are published and where the version is pinned |
 | `example.*` | The snippet customers copy: connect with the catalog settings and read a few rows. Nothing else |
 | `run.sh` | Entry point: `clients/<id>/run.sh <plan.json> <out.json>`, run from the repository root |
+| `README.md` | What the client needs beyond the catalog settings, such as a data source or a federated catalog, and how its API returns a type. Optional |
 | checks (any name) | The checks below. They import or call the connection code of `example.*`, never a copy of it |
 
 `run.sh` reads the settings through `harness/env.sh` (a local `.env`, the environment in CI) and installs what the
@@ -154,7 +155,8 @@ timestamp that arrives as a string or a float does not pass.
 
 Status values:
 
-* `ok`, and `warn` when it passes only with a workaround.
+* `ok`, with no `note`: the table shows no footnote on a passing cell, so the client's setup goes in its
+  `README.md`. `warn` when it passes only with a workaround.
 * `fail`, with one factual sentence in `note`.
 * `na`: the client does not support the feature, documented upstream or stated by an explicit error of the client.
   The `note` cites the source.
@@ -172,14 +174,17 @@ Status values:
   "build": "pyiceberg 0.12.0, pyarrow 22.0.0",
   "checks": {
     "cdc-tables": {"status": "ok", "data": {"total": 172800, "device": 86400, "not_device": 86400, "before": 86400, "after": 86400}},
-    "latest-tables": {"status": "na", "note": "PyIceberg raises on equality deletes (apache/iceberg-python#1210)"}
+    "latest-tables": {"status": "na", "footnote": "pyiceberg-equality-deletes",
+                      "note": "PyIceberg raises on equality deletes (apache/iceberg-python#1210)"}
   }
 }
 ```
 
 `version` is the version of the row's client, `build` everything else that decides the result. `note` is one
-factual sentence for the footnote. `data` carries the counts, so the harness can compare clients; it is not
-shown in the table.
+factual sentence for the footnote. When the cause lies in a library the client is built on, or in a service it reads
+the catalog through, and other clients share it, `footnote` names the entry of `footnotes.toml` that states it: the
+table then shows that footnote once, for all the clients that name it, and the client's `note` stays in the result.
+`data` carries the counts, so the harness can compare clients; it is not shown in the table.
 
 ## Wording
 

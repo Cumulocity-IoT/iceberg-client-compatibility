@@ -360,7 +360,7 @@ fn views_na() -> Value {
 }
 
 fn incremental_na() -> Value {
-    json!({"status": "na", "note": "iceberg-rust, which iceberg-datafusion is built on, scans one snapshot only (TableScanBuilder::snapshot_id) \
+    json!({"status": "na", "footnote": "iceberg-rust-incremental", "note": "iceberg-rust, which iceberg-datafusion is built on, scans one snapshot only (TableScanBuilder::snapshot_id) \
         and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)"})
 }
 
@@ -423,6 +423,7 @@ fn write(out_path: &str, mut checks: BTreeMap<&str, Value>) -> Res<()> {
         if let Some(c) = checks.get_mut("catalog-login").filter(|c| c["status"] == "ok") {
             c["status"] = "warn".into();
             c["workaround"] = "tls".into();
+            c["footnote"] = "iceberg-rust-tls".into(); // footnotes.toml
             c["note"] = "iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct \
                 reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)"
                 .into();

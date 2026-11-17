@@ -83,7 +83,7 @@ def latest_tables(catalog, plan):
     except (ValueError, NotImplementedError) as e:
         if "does not yet support equality deletes" not in str(e):
             raise
-        return {"status": "na", "data": deletes, "note": "Daft plans Iceberg reads with PyIceberg, which raises on equality delete files; Daft applies position deletes only (Eventual-Inc/Daft#2458, equality deletes blocked by PyIceberg)."}
+        return {"status": "na", "data": deletes, "footnote": "pyiceberg-equality-deletes", "note": "Daft plans Iceberg reads with PyIceberg, which raises on equality delete files; Daft applies position deletes only (Eventual-Inc/Daft#2458, equality deletes blocked by PyIceberg)."}
     data = {**row, **deletes}
     if data["rows"] == 0:
         return {"status": "inconclusive", "data": data, "note": "The latest table returned no rows."}
