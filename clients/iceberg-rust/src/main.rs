@@ -142,7 +142,7 @@ async fn main() -> Res<()> {
     checks.insert("schema-evolution", fixture_check(async || schema_evolution(&catalog, &fixture, run, &x["evolution"]).await).await);
     checks.insert("timestamps", fixture_check(async || timestamps(&catalog, &fixture, run, &x["timestamp"]).await).await);
 
-    checks.insert("incremental-read", json!({"status": "na", "footnote": "iceberg-rust-incremental", "note": "Iceberg Rust scans one snapshot only \
+    checks.insert("incremental-read", json!({"status": "na", "source": "apache/iceberg-rust#2152", "note": "Iceberg Rust scans one snapshot only \
         (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in \
         apache/iceberg-rust#2152 (PR #2997)"}));
     write(out_path, checks)

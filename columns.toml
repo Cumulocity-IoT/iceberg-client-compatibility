@@ -1,7 +1,8 @@
 # The columns of the compatibility table, in display order. A column shows in a section only once a result of
 # that section carries it, so the later-phase columns stay hidden until a client reports them. `meaning` is shown
 # to readers below the table; it says what a working cell means for them, then how it is tested where that is not
-# obvious.
+# obvious. `unsupported`, where a column has it, gives the column's ➖ cells one footnote: the renderer follows the text
+# with each client and the `source` of its result.
 
 [[column]]
 id = "catalog-login"
@@ -62,6 +63,7 @@ id = "incremental-read"
 group = "Read"
 title = "Incremental read"
 meaning = "Reads only the rows appended since a given snapshot, skipping compactions in between."
+unsupported = "each of these clients reads an Iceberg table at one snapshot only, such as with time travel, and has no read of the rows appended between two snapshots"
 
 [[column]]
 id = "decimal"
@@ -98,6 +100,7 @@ id = "views"
 group = "Views"
 title = "Views"
 meaning = "Runs the views in the `view_*` namespaces, which turn nested fields into plain columns, and gets the same rows as from their base tables."
+unsupported = "each of these clients loads only tables from the catalog, not Iceberg views"
 
 [[column]]
 id = "copy"

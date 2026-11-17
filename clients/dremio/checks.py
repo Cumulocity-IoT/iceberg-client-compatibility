@@ -192,7 +192,8 @@ def main(plan_path, out_path):
         "nesting": run(nesting, plan),
         "large-values": run(large_values, plan),
         "schema-evolution": run(schema_evolution, plan),
-        "incremental-read": {"status": "na", "note": INCREMENTAL},
+        "incremental-read": {"status": "na", "note": INCREMENTAL,
+                             "source": "docs.dremio.com/current/reference/sql/commands/SELECT-statements"},
     }
     release = info()["version"]  # such as 26.1.12-202510150000000000-1a2b3c4d; the row shows the release part
     version = re.match(r"[0-9]+(\.[0-9]+)*", release).group(0)

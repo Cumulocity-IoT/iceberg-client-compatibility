@@ -207,7 +207,9 @@ def main(plan_path, out_path):
             return {"status": "ok", "data": d}
         total = count(f"SELECT COUNT(*) AS n FROM {fixture}")
         if len(run_ids) == total:
-            return {"status": "na", "data": d, "note": f"{INCREMENTAL_DOCS}; on an Iceberg table Doris accepts @incr and "
+            return {"status": "na", "data": d,
+                    "source": "doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog; Doris ignores @incr on an Iceberg table",
+                    "note": f"{INCREMENTAL_DOCS}; on an Iceberg table Doris accepts @incr and "
                     f"ignores it, returning all {total} rows of the table."}
         return {"status": "fail", "data": d, "note": f"Expected the one row with runId {fx['run_id']}, got {len(run_ids)} rows with runIds {run_ids[:5]}."}
 

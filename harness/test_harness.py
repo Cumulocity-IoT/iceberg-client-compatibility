@@ -105,6 +105,25 @@ class RenderTest(unittest.TestCase):
         self.assertIn("[^2]: Daft 0.7.26, 0.7.25, Views: no views", table)
         self.assertNotIn("own words", table)
 
+    def test_the_unsupported_cells_of_a_column_share_a_footnote_with_each_source(self):
+        columns = [*COLUMNS[:2], {**COLUMNS[2], "unsupported": "each of these clients loads only tables"}]
+        clients = {**CLIENTS, "daft": {"name": "Daft", "section": "engine", "example": "example.py"}}
+        table = render(columns, clients, [
+            result("datafusion", "54.1.0", "2026-11-09", views={"status": "na", "note": "long", "source": "issue#55"}),
+            result("daft", "0.7.26", "2026-11-09", views={"status": "na", "note": "longer"}),
+            result("pyiceberg", "0.12.0", "2026-11-09", **{"latest-tables": {"status": "na", "note": "own words"}}),
+        ])
+        self.assertEqual(2, table.count("| ➖[^2] |"))
+        self.assertIn("[^1]: PyIceberg 0.12.0, Latest tables: own words", table)  # a column without the text keeps notes
+        self.assertIn("[^2]: Views: each of these clients loads only tables: Apache DataFusion 54.1.0 (issue#55); Daft 0.7.26.", table)
+
+    def test_an_older_version_with_the_same_statuses_is_left_out(self):
+        table = render(COLUMNS, CLIENTS, [
+            result("datafusion", "53.1.0", "2026-11-02", views={"status": "na", "note": "worded once"}),
+            result("datafusion", "54.1.0", "2026-11-09", views={"status": "na", "note": "worded again", "source": "issue#55"}),
+        ])
+        self.assertNotIn("53.1.0", table)
+
     def test_a_footnote_must_exist(self):
         checks = {"latest-tables": {"status": "na", "footnote": "missing"}}
         with self.assertRaisesRegex(ValueError, "footnotes.toml lacks"):

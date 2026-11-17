@@ -247,7 +247,7 @@ def schema_evolution(plan):
 
 
 def incremental_read(plan):
-    return {"status": "na", "note": INCREMENTAL}
+    return {"status": "na", "note": INCREMENTAL, "source": "docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"}
 
 
 def lowercase(plan):

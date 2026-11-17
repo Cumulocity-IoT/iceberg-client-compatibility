@@ -7,10 +7,6 @@ id = "iceberg-rust-tls"
 text = "needs the `tls` workaround: iceberg-catalog-rest, the REST catalog client of Iceberg Rust, which Apache DataFusion reads Iceberg with, builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)."
 
 [[footnote]]
-id = "iceberg-rust-incremental"
-text = "Iceberg Rust, which Apache DataFusion reads Iceberg with, scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)."
-
-[[footnote]]
 id = "pyiceberg-equality-deletes"
 text = "PyIceberg raises on equality delete files and cannot read the table (apache/iceberg-python#1210). Daft plans its Iceberg reads with PyIceberg (Eventual-Inc/Daft#2458), and Polars falls back to PyIceberg's reader for the equality delete files its own planner rejects."
 

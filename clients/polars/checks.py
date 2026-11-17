@@ -211,7 +211,8 @@ def views(catalog, plan):
     try:
         on_view = ctx.execute(f'SELECT * FROM lake."{v["namespace"]}"."{v["view"]}"').filter(rows).select(pl.len()).collect().item()
     except NoSuchTableError:
-        return {"status": "na", "note": "Polars reads Iceberg tables only: scan_iceberg and SQLContext.register_catalog load a name with load_table, which raises NoSuchTableError for the view (docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html)."}
+        return {"status": "na", "source": "docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html",
+                "note": "Polars reads Iceberg tables only: scan_iceberg and SQLContext.register_catalog load a name with load_table, which raises NoSuchTableError for the view (docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html)."}
     data = {"view": on_view, "table": scan(catalog, m).filter(rows).select(pl.len()).collect().item()}
     if data["view"] != data["table"]:
         return {"status": "fail", "data": data, "note": f"The view returns {data['view']} rows, its base table {data['table']}."}

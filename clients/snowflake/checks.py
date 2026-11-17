@@ -114,7 +114,7 @@ def views(plan):
         view = count(f"SELECT COUNT(*) FROM {name(v, 'view')} x {where}")
     except Exception as error:
         if "does not exist" in str(error):
-            return {"status": "na", "note": f"{VIEWS}; the query fails with {message(error)}"}
+            return {"status": "na", "source": LINKED_DB, "note": f"{VIEWS}; the query fails with {message(error)}"}
         raise
     data = {"view": view, "table": count(f"SELECT COUNT(*) FROM {name(m)} x {where}")}
     if data["view"] != data["table"]:
@@ -225,7 +225,8 @@ def incremental_read(plan):
         rows, _ = query(f"""SELECT "runId" FROM {name(f['table'])} CHANGES(INFORMATION => APPEND_ONLY) AT(TIMESTAMP => {ts(f['posted'])})""")
     except Exception as error:
         if re.search(r"(?i)change.?tracking|not supported|unsupported", str(error)):
-            return {"status": "na", "note": f"{INCREMENTAL}; the CHANGES query fails with {message(error)}"}
+            return {"status": "na", "source": "the CHANGES query fails with error 091947",
+                    "note": f"{INCREMENTAL}; the CHANGES query fails with {message(error)}"}
         raise
     got = [r[0] for r in rows]
     if got != [f["run_id"]]:

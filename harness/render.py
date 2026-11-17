@@ -61,15 +61,18 @@ def validate(columns, clients, results, footnotes=None):
                 raise ValueError(f"{where}: {check} names the footnote {value['footnote']!r}, which footnotes.toml lacks")
 
 
-def footnote_key(client, check):
-    """What a cell's footnote is about: a footnote of footnotes.toml, which every client that names it shares, else
-    the client's workaround, else its note. None for a passing cell, whose setup belongs in the client's README."""
+def footnote_key(client, check, column):
+    """What a cell's footnote is about: a footnote of footnotes.toml, which every client that names it shares; else
+    the client's workaround; else, for ➖ in a column with an `unsupported` text, the column's one footnote; else the
+    client's note. None for a passing cell, whose setup belongs in the client's README."""
     if check.get("status", "ok") == "ok":
         return None
     if check.get("footnote"):
         return (None, "footnote", check["footnote"])
     if check.get("workaround"):
         return (client, "workaround", check["workaround"])
+    if check["status"] == "na" and column.get("unsupported"):
+        return (None, "unsupported", column["id"])
     return (client, "note", check["note"]) if check.get("note") else None
 
 
@@ -94,8 +97,8 @@ def render(columns, clients, results, footnotes=None):
         rows.sort(key=lambda r: version_key(r["version"]), reverse=True)
         rows.sort(key=lambda r: clients[r["client"]]["name"].lower())
         shown = [c for c in used if any(c["id"] in r["checks"] for r in rows)]
-        cell_of = lambda r, c: tuple(r["checks"].get(c["id"], {}).get(k) for k in ("status", "workaround", "footnote", "note"))
-        # An older version whose cells all equal those of the newer version listed above it adds nothing.
+        cell_of = lambda r, c: tuple(r["checks"].get(c["id"], {}).get(k) for k in ("status", "workaround"))
+        # An older version whose cells show the same as those of the newer version listed above it adds nothing.
         listed = []
         for r in rows:
             above = listed[-1] if listed and listed[-1]["client"] == r["client"] else None
@@ -103,26 +106,32 @@ def render(columns, clients, results, footnotes=None):
                 listed.append(r)
         sections.append((heading, intro, shown, listed))
 
-    # Cells that name the same footnote of footnotes.toml share one, across clients and sections. A client's cells
-    # that need the same workaround share one across its versions, with the note of the first of them; its other
-    # cells share one when their notes are the same.
+    # Cells that name the same footnote of footnotes.toml share one, across clients and sections, and so do the ➖
+    # cells of a column with an `unsupported` text. A client's cells that need the same workaround share one across
+    # its versions, with the note of the first of them; its other cells share one when their notes are the same.
     groups = {}
     for _, _, shown, listed in sections:
         for r in listed:
             for c in shown:
                 check = r["checks"].get(c["id"], {})
-                if key := footnote_key(r["client"], check):
-                    group = groups.setdefault(key, {"rows": [], "titles": set(), "note": check.get("note")})
+                if key := footnote_key(r["client"], check, c):
+                    group = groups.setdefault(key, {"rows": [], "titles": set(), "note": check.get("note"), "sources": {}})
                     group["rows"] += [(r["client"], r["version"])] if (r["client"], r["version"]) not in group["rows"] else []
                     group["titles"].add(c["title"])
+                    group["sources"].setdefault(r["client"], check.get("source"))
 
     def footnote(key):
         group = groups[key]
+        versions = {}
+        for client, version in group["rows"]:
+            versions.setdefault(client, []).append(version)
         if key[1] == "footnote":
-            versions = {}
-            for client, version in group["rows"]:
-                versions.setdefault(client, []).append(version)
             return f"{listing([f'{clients[c]['name']} {listing(vs)}' for c, vs in versions.items()])}: {footnotes[key[2]]}"
+        if key[1] == "unsupported":
+            column = next(c for c in columns if c["id"] == key[2])
+            source = lambda c: f" ({group['sources'][c]})" if group["sources"][c] else ""
+            return (f"{column['title']}: {column['unsupported']}: "
+                    + "; ".join(f"{clients[c]['name']} {listing(vs)}{source(c)}" for c, vs in versions.items()) + ".")
         name = clients[key[0]]["name"]
         text = (f"needs the `{key[2]}` workaround" + (f": {group['note']}" if group["note"] else "")
                 if key[1] == "workaround" else group["note"])
@@ -148,7 +157,7 @@ def render(columns, clients, results, footnotes=None):
                     cells.append("")
                     continue
                 cell = ICONS[check["status"]]
-                if key := footnote_key(r["client"], check):
+                if key := footnote_key(r["client"], check, c):
                     if key not in refs:
                         notes.append(footnote(key))
                         refs[key] = len(notes)

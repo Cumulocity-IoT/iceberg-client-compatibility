@@ -183,7 +183,8 @@ def incremental_read(con, plan):
     except duckdb.BinderException as e:
         if "Invalid named parameter" not in str(e):
             raise
-        return {"status": "na", "note": "iceberg_scan reads one snapshot and has no start/end snapshot range "
+        return {"status": "na", "source": "duckdb/duckdb-iceberg#1355",
+                "note": "iceberg_scan reads one snapshot and has no start/end snapshot range "
                 f"({str(e).splitlines()[0][:120]}); incremental reads are an open request (duckdb/duckdb-iceberg#1355)."}
     if [r[0] for r in found] != [f["run_id"]]:
         return {"status": "fail", "data": {"rows": len(found)}, "note": f"Expected only the run's row, got {len(found)} rows: {[r[0] for r in found][:5]}."}

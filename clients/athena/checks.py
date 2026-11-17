@@ -244,7 +244,8 @@ def schema_evolution(plan):
 
 
 def incremental_read(plan):
-    return {"status": "na", "note": INCREMENTAL}
+    return {"status": "na", "note": INCREMENTAL,
+            "source": "docs.aws.amazon.com/athena/latest/ug/querying-iceberg-time-travel-and-version-travel-queries.html"}
 
 
 def lowercase(plan):

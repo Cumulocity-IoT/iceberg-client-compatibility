@@ -159,7 +159,9 @@ Status values:
   `README.md`. `warn` when it passes only with a workaround.
 * `fail`, with one factual sentence in `note`.
 * `na`: the client does not support the feature, documented upstream or stated by an explicit error of the client.
-  The `note` cites the source.
+  The `note` cites the source. In a column with an `unsupported` text in `columns.toml` (Incremental read, Views),
+  the ➖ cells share one footnote that lists each client with its `source`: that citation in short, such as
+  `duckdb/duckdb-iceberg#1355` or a documentation URL without `https://`.
 * `inconclusive`: a precondition was checked and does not hold, for example a table with no snapshot. Zero rows
   alone is not enough: a table that has a snapshot but reads as empty is a `fail`.
 
