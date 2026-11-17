@@ -248,10 +248,11 @@ func runRow(ctx context.Context, cat *rest.Catalog, r ref, run string, fields ..
 		return nil, err
 	}
 	if rec := findRun(recs, run); rec != nil {
-		filterWorkaround = "a row filter combined with a projection that leaves out a list-of-structs column ahead of " +
-			"the filtered column is applied to the next column (pruneParquetSchema.Struct in table/internal), here " +
-			"giving " + plain + "; the workaround plans the files with the filter, reads them without it and filters " +
-			"the rows after the scan. A fix is sketched in https://github.com/Cumulocity-IoT/iceberg-go-fixes/pull/1."
+		filterWorkaround = "a row filter combined with a projection that leaves out a struct column, or a list or " +
+			"map of structs, ahead of the filtered column is applied to the next column (pruneParquetSchema.Struct in " +
+			"table/internal), here giving " + plain + "; the workaround plans the files with the filter, reads them " +
+			"without it and filters the rows after the scan. Fixed after 0.7.0 by " +
+			"https://github.com/apache/iceberg-go/commit/1fe5766."
 		return rec, nil
 	}
 	return nil, fmt.Errorf("%s.%s has no row with runId = %s", r.Namespace, r.Table, run)
