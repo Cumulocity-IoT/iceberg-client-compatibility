@@ -7,8 +7,7 @@
       "status": "ok",
       "data": {
         "namespaces": 7
-      },
-      "note": "An AWS Glue connection was provisioned with the OAuth client credential and CREDENTIAL_VENDING_MODE = SOURCE_VENDED, and a federated catalog on it."
+      }
     },
     "s3": {
       "status": "warn",
@@ -16,6 +15,7 @@
         "rows": 5
       },
       "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
       "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:15: Table 't2027824580.cdc_measurement.c8y_temperature' does not exist"
     },
     "cdc-tables": {
@@ -28,6 +28,7 @@
         "after": 34685
       },
       "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
       "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:22: Table 't2027824580.cdc_measurement.c8y_temperature' does not exist"
     },
     "latest-tables": {
@@ -39,10 +40,12 @@
     },
     "identifiers": {
       "status": "fail",
+      "footnote": "aws-glue-federation",
       "note": "AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:23: Table 't2027824580.cdc_event.compat_x002eescaped' does not exist"
     },
     "views": {
       "status": "na",
+      "footnote": "aws-glue-federation",
       "note": "AWS Glue catalog federation discovers \"Iceberg tables in external catalogs\" (docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html) and none of the catalog's views, not even those with lowercase names such as view_alarm.alarm; the query fails with TABLE_NOT_FOUND: line 1:22: Table 't2027824580.view_measurement.c8y_temperature' does not exist"
     },
     "decimal": {
@@ -52,16 +55,18 @@
         "fractionDecimal": "0.123456789",
         "tinyDecimal": "0.000000001"
       },
-      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:68: Table 't2027824580.cdc_event.compat_fixture' does not exist",
-      "workaround": "lowercase-tables"
+      "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
+      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:68: Table 't2027824580.cdc_event.compat_fixture' does not exist"
     },
     "timestamps": {
       "status": "warn",
       "data": {
         "value": "2026-11-02T10:11:12.345000+00:00"
       },
-      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:29: Table 't2027824580.cdc_event.compat_fixture' does not exist",
-      "workaround": "lowercase-tables"
+      "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
+      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:29: Table 't2027824580.cdc_event.compat_fixture' does not exist"
     },
     "nesting": {
       "status": "warn",
@@ -70,6 +75,7 @@
         "elements": 2
       },
       "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
       "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:358: Table 't2027824580.cdc_event.compat_fixture' does not exist"
     },
     "large-values": {
@@ -79,16 +85,19 @@
         "bytes": 32768
       },
       "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
       "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:27: Table 't2027824580.cdc_event.compat_fixture' does not exist"
     },
     "schema-evolution": {
       "status": "warn",
       "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
       "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: TABLE_NOT_FOUND: line 1:28: Table 't2027824580.cdc_event.compat_fixture' does not exist"
     },
     "incremental-read": {
       "status": "na",
-      "note": "Athena SQL reads an Iceberg table at one snapshot (FOR VERSION AS OF, FOR TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.aws.amazon.com/athena/latest/ug/querying-iceberg-time-travel-and-version-travel-queries.html)."
+      "note": "Athena SQL reads an Iceberg table at one snapshot (FOR VERSION AS OF, FOR TIMESTAMP AS OF) and has no clause or table function for the rows appended between two snapshots (docs.aws.amazon.com/athena/latest/ug/querying-iceberg-time-travel-and-version-travel-queries.html).",
+      "source": "docs.aws.amazon.com/athena/latest/ug/querying-iceberg-time-travel-and-version-travel-queries.html"
     }
   },
   "date": "2026-11-17"

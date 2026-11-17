@@ -24,6 +24,7 @@
     },
     "latest-tables": {
       "status": "na",
+      "footnote": "pyiceberg-equality-deletes",
       "note": "The polars-iceberg planner rejects equality delete files and PyIceberg's reader, the fallback, raises 'PyIceberg does not yet support equality deletes' (apache/iceberg-python#1210)."
     },
     "identifiers": {
@@ -31,6 +32,7 @@
     },
     "views": {
       "status": "na",
+      "source": "docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html",
       "note": "Polars reads Iceberg tables only: scan_iceberg and SQLContext.register_catalog load a name with load_table, which raises NoSuchTableError for the view (docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html)."
     },
     "decimal": {
@@ -55,11 +57,11 @@
     "incremental-read": {
       "status": "ok",
       "data": {
-        "from": "2424176303353229952",
-        "to": "5201353028175405150",
+        "from": "5541411046724810301",
+        "to": "5823614016064362375",
         "rows": 1
       }
     }
   },
-  "date": "2026-11-16"
+  "date": "2026-11-17"
 }

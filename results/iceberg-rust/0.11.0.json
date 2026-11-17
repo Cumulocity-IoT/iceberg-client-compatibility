@@ -5,6 +5,7 @@
       "data": {
         "namespaces": 15
       },
+      "footnote": "iceberg-rust-tls",
       "note": "iceberg-catalog-rest builds reqwest without a TLS backend, so an https catalog needs a direct reqwest 0.12 dependency with rustls-tls (apache/iceberg-rust#2888)",
       "status": "warn",
       "workaround": "tls"
@@ -29,6 +30,7 @@
     },
     "incremental-read": {
       "note": "Iceberg Rust scans one snapshot only (TableScanBuilder::snapshot_id) and has no incremental append scan; reads between snapshot ids are open in apache/iceberg-rust#2152 (PR #2997)",
+      "source": "apache/iceberg-rust#2152",
       "status": "na"
     },
     "large-values": {
@@ -62,5 +64,5 @@
   },
   "client": "iceberg-rust",
   "version": "0.11.0",
-  "date": "2026-11-16"
+  "date": "2026-11-17"
 }

@@ -26,9 +26,10 @@
     "latest-tables": {
       "status": "na",
       "data": {
-        "equality_deletes": 21,
-        "position_deletes": 768
+        "equality_deletes": 196,
+        "position_deletes": 7460
       },
+      "footnote": "pyiceberg-equality-deletes",
       "note": "Daft plans Iceberg reads with PyIceberg, which raises on equality delete files; Daft applies position deletes only (Eventual-Inc/Daft#2458, equality deletes blocked by PyIceberg)."
     },
     "identifiers": {
@@ -39,6 +40,7 @@
       "data": {
         "base": 34560
       },
+      "source": "docs.daft.ai/en/stable/connectors/custom-catalogs",
       "note": "Daft's catalogs resolve only tables and namespaces, and its Iceberg catalog loads names with PyIceberg's load_table, so the view is not found (docs.daft.ai/en/stable/connectors/custom-catalogs): InvalidSQLException: Table not found: lake.view_measurement.c8y_Temperature"
     },
     "decimal": {
@@ -62,8 +64,9 @@
     },
     "incremental-read": {
       "status": "na",
+      "source": "Eventual-Inc/Daft#4139",
       "note": "Daft's read_iceberg reads one snapshot, branch or tag and has no snapshot-range read (Eventual-Inc/Daft#4139, open)."
     }
   },
-  "date": "2026-11-16"
+  "date": "2026-11-17"
 }

@@ -30,7 +30,7 @@
       "data": {
         "rows": 5002,
         "ids": 5002,
-        "equality_delete_files": 35
+        "equality_delete_files": 98
       }
     },
     "identifiers": {
@@ -67,20 +67,20 @@
     "incremental-read": {
       "status": "na",
       "data": {
-        "from": "4744885556071756994",
-        "to": "6625707765818946959",
-        "rows": 31
+        "from": "5541411046724810301",
+        "to": "5823614016064362375",
+        "rows": 38
       },
-      "note": "Doris documents @incr incremental reads for Hudi and Paimon tables, not for Iceberg tables (doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog); on an Iceberg table Doris accepts @incr and ignores it, returning all 31 rows of the table."
+      "source": "doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog; Doris ignores @incr on an Iceberg table",
+      "note": "Doris documents @incr incremental reads for Hudi and Paimon tables, not for Iceberg tables (doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog); on an Iceberg table Doris accepts @incr and ignores it, returning all 38 rows of the table."
     },
     "timestamps": {
       "status": "ok",
       "data": {
         "text": "2026-11-02 15:41:12.345000+05:30",
         "ms": 1793614272345
-      },
-      "note": "The MySQL protocol carries TIMESTAMPTZ(6) as text in the session time zone, so the instant is read as epoch milliseconds through MILLISECOND_TIMESTAMP."
+      }
     }
   },
-  "date": "2026-11-16"
+  "date": "2026-11-17"
 }
