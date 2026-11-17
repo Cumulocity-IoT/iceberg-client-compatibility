@@ -194,8 +194,8 @@ if ! aws iam get-open-id-connect-provider --open-id-connect-provider-arn "$OIDC_
   aws iam create-open-id-connect-provider --url https://token.actions.githubusercontent.com \
     --client-id-list sts.amazonaws.com --query OpenIDConnectProviderArn --output text
 fi
-TRUST=$(GITHUB_REPO=$GITHUB_REPO GITHUB_ENVIRONMENT=$GITHUB_ENVIRONMENT OIDC_PROVIDER_ARN=$OIDC_PROVIDER_ARN python3 -c 'import json, os
-sub = "repo:" + os.environ["GITHUB_REPO"] + ":environment:" + os.environ["GITHUB_ENVIRONMENT"]
+TRUST=$(SUBJECT="$GITHUB_SUBJECT_PREFIX:environment:$GITHUB_ENVIRONMENT" OIDC_PROVIDER_ARN=$OIDC_PROVIDER_ARN python3 -c 'import json, os
+sub = os.environ["SUBJECT"]
 print(json.dumps({"Version": "2012-10-17", "Statement": [{"Effect": "Allow",
     "Principal": {"Federated": os.environ["OIDC_PROVIDER_ARN"]}, "Action": "sts:AssumeRoleWithWebIdentity",
     "Condition": {"StringEquals": {"token.actions.githubusercontent.com:aud": "sts.amazonaws.com",

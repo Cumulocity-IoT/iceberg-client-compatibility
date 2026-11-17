@@ -98,6 +98,7 @@ All scripts read the catalog settings from the repository's `.env` (`CATALOG_URI
 | `CREDENTIAL_VENDING_MODE` | `SOURCE_VENDED` (default) or `AWS_VENDED` |
 | `LAKE_LOCATION` | for `AWS_VENDED` only: the tenant's prefix of the lakehouse, `s3://<bucket>/<tenant>`, for the role's read access |
 | `GITHUB_REPO`, `GITHUB_ENVIRONMENT` | the repository and the environment whose workflow runs may assume the CI role; default `Cumulocity-IoT/iceberg-client-compatibility` and `eu-latest-test` |
+| `GITHUB_SUBJECT_PREFIX` | the repository as its OpenID Connect tokens name it, which `gh api repos/<repo>/actions/oidc/customization/sub` prints as `sub_claim_prefix`; default that of `Cumulocity-IoT/iceberg-client-compatibility`, which uses GitHub's immutable subject claims with the IDs of the owner and the repository |
 
 * [`setup.sh`](setup.sh) creates everything above and skips what already exists. On an existing connection it switches
   the credential vending mode, which keeps the registration and the federated catalog. For `AWS_VENDED` it prints the

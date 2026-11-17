@@ -26,8 +26,11 @@ REDSHIFT_ROLE_NAME=compat-redshift-federation
 REDSHIFT_ROLE_ARN=arn:aws:iam::$ACCOUNT:role/$REDSHIFT_ROLE_NAME
 NAMESPACES="cdc_alarm cdc_event cdc_inventory cdc_measurement cdc_rejected latest_inventory view_measurement"
 LINK_PREFIX=compat_
-# The identity of the GitHub workflow, through OpenID Connect, and the environment whose runs may take it.
+# The identity of the GitHub workflow, through OpenID Connect, and the environment whose runs may take it. The
+# repository uses GitHub's immutable subject claims: its tokens name the owner and the repository with their IDs.
+# `gh api repos/<repo>/actions/oidc/customization/sub` prints that prefix as sub_claim_prefix.
 GITHUB_REPO=${GITHUB_REPO:-Cumulocity-IoT/iceberg-client-compatibility}
+GITHUB_SUBJECT_PREFIX=${GITHUB_SUBJECT_PREFIX:-repo:Cumulocity-IoT@163998410/iceberg-client-compatibility@1443001544}
 GITHUB_ENVIRONMENT=${GITHUB_ENVIRONMENT:-eu-latest-test}
 CI_ROLE_NAME=compat-github-actions
 CI_ROLE_ARN=arn:aws:iam::$ACCOUNT:role/$CI_ROLE_NAME
