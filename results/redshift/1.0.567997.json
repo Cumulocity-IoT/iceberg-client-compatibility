@@ -1,0 +1,102 @@
+{
+  "client": "redshift",
+  "version": "1.0.567997",
+  "build": "Amazon Redshift Serverless 1.0.567997 (workgroup compat), external schemas on AWS Glue resource links to the federated catalog with SOURCE_VENDED, Redshift Data API with boto3 1.44.4",
+  "checks": {
+    "catalog-login": {
+      "status": "ok",
+      "data": {
+        "namespaces": 7
+      }
+    },
+    "s3": {
+      "status": "warn",
+      "data": {
+        "rows": 5
+      },
+      "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
+      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_measurement.c8y_temperature"
+    },
+    "cdc-tables": {
+      "status": "warn",
+      "data": {
+        "total": 69370,
+        "device": 34560,
+        "not_device": 34810,
+        "before": 34685,
+        "after": 34685
+      },
+      "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
+      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_measurement.c8y_temperature"
+    },
+    "latest-tables": {
+      "status": "ok",
+      "data": {
+        "rows": 5002,
+        "ids": 5002
+      }
+    },
+    "identifiers": {
+      "status": "fail",
+      "footnote": "aws-glue-federation",
+      "note": "AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_event.compat_x002eescaped"
+    },
+    "views": {
+      "status": "na",
+      "footnote": "aws-glue-federation",
+      "note": "AWS Glue catalog federation discovers \"Iceberg tables in external catalogs\" (docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html) and none of the catalog's views, not even those with lowercase names such as view_alarm.alarm; the query fails with AwsClientException: EntityNotFoundException from glue - Table does not exist: view_measurement.c8y_temperature"
+    },
+    "decimal": {
+      "status": "warn",
+      "data": {
+        "decimalValue": "12345678901234567000.000000000",
+        "fractionDecimal": "0.123456789",
+        "tinyDecimal": "0.000000001"
+      },
+      "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
+      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_event.compat_fixture"
+    },
+    "timestamps": {
+      "status": "warn",
+      "data": {
+        "value": "2026-11-02T10:11:12.345000"
+      },
+      "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
+      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_event.compat_fixture"
+    },
+    "nesting": {
+      "status": "warn",
+      "data": {
+        "leaf": "deepest",
+        "elements": 2
+      },
+      "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
+      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_event.compat_fixture"
+    },
+    "large-values": {
+      "status": "fail",
+      "data": {
+        "chars": 8191,
+        "bytes": 16382
+      },
+      "note": "With the lowercase-tables switch: Expected 16384 chars and 32768 bytes of '\u00e4', got 8191 chars, 16382 bytes of ['\u00e4']. Redshift reads an Iceberg string as varchar(16384) and truncates longer strings (docs.aws.amazon.com/redshift/latest/dg/querying-iceberg-supported-data-types.html)."
+    },
+    "schema-evolution": {
+      "status": "warn",
+      "workaround": "lowercase-tables",
+      "footnote": "aws-glue-federation",
+      "note": "The check reads the same data from tables whose names have no capitals. Without it: AWS Glue catalog federation leaves out the tables whose names mix lowercase and uppercase letters, as its connection property CATALOG_CASING_FILTER takes LOWERCASE_ONLY or UPPERCASE_ONLY: AwsClientException: EntityNotFoundException from glue - Table does not exist: cdc_event.compat_fixture"
+    },
+    "incremental-read": {
+      "status": "na",
+      "note": "Redshift reads an Iceberg table as of one point in time (AS OF TIMESTAMP) and has no query for the rows appended between two snapshots (docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html).",
+      "source": "docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+    }
+  },
+  "date": "2026-11-23"
+}

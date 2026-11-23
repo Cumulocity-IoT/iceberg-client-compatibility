@@ -30,7 +30,7 @@
       "data": {
         "rows": 5002,
         "ids": 5002,
-        "equality_delete_files": 98
+        "equality_delete_files": 20
       }
     },
     "identifiers": {
@@ -67,12 +67,12 @@
     "incremental-read": {
       "status": "na",
       "data": {
-        "from": "5541411046724810301",
-        "to": "5823614016064362375",
-        "rows": 38
+        "from": "2298478002632146820",
+        "to": "5231211926437304804",
+        "rows": 41
       },
       "source": "doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog; Doris ignores @incr on an Iceberg table",
-      "note": "Doris documents @incr incremental reads for Hudi and Paimon tables, not for Iceberg tables (doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog); on an Iceberg table Doris accepts @incr and ignores it, returning all 38 rows of the table."
+      "note": "Doris documents @incr incremental reads for Hudi and Paimon tables, not for Iceberg tables (doris.apache.org/docs/lakehouse/catalogs/iceberg-catalog); on an Iceberg table Doris accepts @incr and ignores it, returning all 41 rows of the table."
     },
     "timestamps": {
       "status": "ok",
@@ -82,5 +82,5 @@
       }
     }
   },
-  "date": "2026-11-17"
+  "date": "2026-11-23"
 }

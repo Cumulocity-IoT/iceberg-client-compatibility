@@ -4,7 +4,7 @@
 # ///
 """Registers the lake of a Cumulocity tenant as the external catalog `lake` in StarRocks and reads a few rows.
 
-Start StarRocks, for example `docker run -p 9030:9030 starrocks/allin1-ubuntu:4.1.7`, export the CATALOG_*
+Start StarRocks, for example `docker run -p 9030:9030 starrocks/allin1-ubuntu:4.1.8`, export the CATALOG_*
 settings and run `uv run --script example.py`. STARROCKS_HOST and STARROCKS_PORT name the server's MySQL
 port (default 127.0.0.1:9030).
 """

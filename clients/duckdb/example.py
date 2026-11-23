@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["duckdb==2.0.0"]
+# dependencies = ["duckdb==2.0.1"]
 # ///
 """Connects DuckDB to the lake of a Cumulocity tenant and reads a few rows.
 

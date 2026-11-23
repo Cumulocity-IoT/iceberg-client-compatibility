@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["duckdb==2.0.0", "pytz==2026.6"]  # DuckDB converts TIMESTAMPTZ to datetime with pytz
+# dependencies = ["duckdb==2.0.1", "pytz==2026.6"]  # DuckDB converts TIMESTAMPTZ to datetime with pytz
 # ///
 """Runs the contract checks (clients/CONTRACT.md) with DuckDB SQL: checks.py <plan.json> <out.json>."""
 
